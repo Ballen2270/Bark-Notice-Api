@@ -1,6 +1,6 @@
 # Bark-Notice-Api
 
-非常感谢Bark作者开源了Bark和Bark-Server，让我们能够免费享受到Apple设备的实时推送服务。相比于钉钉webhook、Server酱等工具，Bark的自由便捷让我爱不释手。
+非常感谢Bark作者开源了Bark和Bark-Server，让我们能够免费享受到Apple设备的实时推送服务。相比于钉钉、Server酱等webhook工具，Bark的自由便捷让我爱不释手。
 
 为了实现多设备推送和保障隐私，我基于SpringBoot对Bark-Server进行了一层封装，开发了Bark-Notice-Api。个人编码能力有限，仅满足个人需求。
 
