@@ -110,15 +110,15 @@ docker run -d --name bark-notice-api \
 
 ## 生成加密设备配置
 
-<img src="./assets/%E7%94%9F%E6%88%90%E5%8A%A0%E5%AF%86%E8%AE%BE%E5%A4%87%E9%85%8D%E7%BD%AE-1998298.png" alt="生成加密设备配置" style="zoom: 33%;" />
+<img src="/image/genDeviceConf.png" alt="addPersonalService.png" style="zoom: 33%;" />
 
 ## 添加私有服务器
 
-<img src="./assets/%E6%B7%BB%E5%8A%A0%E7%A7%81%E6%9C%89%E6%9C%8D%E5%8A%A1%E5%99%A8-1998360.png" alt="添加私有服务器" style="zoom: 25%;" />
+<img src="/image/addPersonalService.png" alt="添加私有服务器" style="zoom: 25%;" />
 
 ## 推送消息
 
-<img src="./assets/%E6%8E%A8%E9%80%81%E6%B6%88%E6%81%AF-1998405.png" alt="推送消息" style="zoom: 67%;" />
+<img src="/image/pushMessage.png" alt="推送消息" style="zoom: 67%;" />
 
 # API
 
