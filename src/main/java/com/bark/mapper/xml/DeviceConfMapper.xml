@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bark.mapper.DeviceConfMapper">
+  <resultMap id="BaseResultMap" type="com.bark.domain.DeviceConf">
+    <id column="device_token" jdbcType="VARCHAR" property="deviceToken" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="device_key" jdbcType="VARCHAR" property="deviceKey" />
+    <result column="algorithm" jdbcType="VARCHAR" property="algorithm" />
+    <result column="model" jdbcType="VARCHAR" property="model" />
+    <result column="padding" jdbcType="VARCHAR" property="padding" />
+    <result column="encode_key" jdbcType="VARCHAR" property="encodeKey" />
+    <result column="iv" jdbcType="VARCHAR" property="iv" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from device_conf
+    where device_token = #{deviceToken,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.bark.domain.DeviceConf">
+    insert into device_conf (device_token, `name`, device_key, 
+      algorithm, model, padding, 
+      encode_key, iv, `status`
+      )
+    values (#{deviceToken,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{deviceKey,jdbcType=VARCHAR}, 
+      #{algorithm,jdbcType=VARCHAR}, #{model,jdbcType=VARCHAR}, #{padding,jdbcType=VARCHAR}, 
+      #{encodeKey,jdbcType=VARCHAR}, #{iv,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.bark.domain.DeviceConf">
+    update device_conf
+    set `name` = #{name,jdbcType=VARCHAR},
+      device_key = #{deviceKey,jdbcType=VARCHAR},
+      algorithm = #{algorithm,jdbcType=VARCHAR},
+      model = #{model,jdbcType=VARCHAR},
+      padding = #{padding,jdbcType=VARCHAR},
+      encode_key = #{encodeKey,jdbcType=VARCHAR},
+      iv = #{iv,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=VARCHAR}
+    where device_token = #{deviceToken,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select device_token, `name`, device_key, algorithm, model, padding, encode_key, iv, 
+    `status`
+    from device_conf
+    where device_token = #{deviceToken,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select device_token, `name`, device_key, algorithm, model, padding, encode_key, iv, 
+    `status`
+    from device_conf
+  </select>
+  <select id="selectAllActive" resultType="com.bark.domain.DeviceConf">
+    select device_token, `name`, device_key, algorithm, model, padding, encode_key, iv,
+           `status`
+    from device_conf
+    where status = 'ACTIVE'
+  </select>
+</mapper>
