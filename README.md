@@ -182,4 +182,105 @@ docker run -d --name bark-notice-api \
     }
 }
 ```
+# Jellyfin
+
+提供两种接入思路
+
+一种是通用格式，另一种是配置更简单的Jellyfin格式
+
+## webhook
+
+这个插件还挺坑的 获取不到UserName的 NotificationName可以获取到当前播放的用户 ，播放的IP也获取不到
+
+### github
+
+https://github.com/jellyfin/jellyfin-plugin-webhook
+
+### 通用配置
+
+插件->目录 安装webhook插件
+
+Add Generic Destination
+
+name随意填写
+
+Notification Type Playback Start 、Playback Stop 我只选择了开始播放和暂停播放
+
+User filter不用勾选 勾选的用户不会发送通知
+
+Item Type全部勾选 
+
+默认是发送text/plain请求 如果要发送json格式的
+
+Add Request Header
+
+```
+Key：Content-Type
+Value：application/json
+```
+
+
+
+## Notice-Api
+
+此种接入方式更自由，可依据jellyfin webhook插件语法自行编写模板
+
+webhook url
+
+```
+http://127.0.0.1:8080/notice
+```
+
+Template模板
+
+```
+{
+    "group": "Jellyfin",
+    {{~#if_equals NotificationType 'PlaybackStart'~}}
+        "title": "🎬 Jellyfin 播放 🎥",
+    {{~else~}}
+    {{~#if_equals NotificationType  'PlaybackStop'~}}
+        "title": "🎬 Jellyfin 暂停 🎥",
+    {{~else~}}
+        "title": "🎬 Jellyfin 🎥",
+    {{~/if_equals~}}
+    {{~/if_equals~}}
+    {{~#if_equals ItemType 'Episode'~}}
+    "body": "用户：{{NotificationUsername}}\n电视剧：{{{SeriesName}}}.S{{SeasonNumber00}}E{{EpisodeNumber00}}.{{{Name}}}\n播放终端：{{DeviceName}}"
+    {{~else~}}
+    {{~#if_equals ItemType 'Movie'~}}
+        "body": "用户：{{NotificationUsername}}\n电影：{{{Name}}}({{Year}})\n设备：{{DeviceName}}"
+    {{~/if_equals~}}
+    {{~/if_equals~}}
+}
+```
+
+
+
+## Notice-Api-For-Jellyfin
+
+此种方式配置比较简单通俗，目前仅实现增加、播放、暂停三个操作
+
+Webhook url
+
+```
+http://127.0.0.1:8080/jellyfin/notice
+```
+
+Template模板
+
+```
+{
+  "notificationType": "{{{NotificationType}}}",
+  "itemType": "{{{ItemType}}}",
+  "seriesName": "{{{SeriesName}}}",
+  "seasonNumber": "{{SeasonNumber00}}",
+  "episodeNumber": "{{EpisodeNumber00}}",
+  "name": "{{{Name}}}",
+  "year": "{{Year}}",
+  "deviceName": "{{{DeviceName}}}",
+  "notificationUsername": "{{{NotificationUsername}}}"
+}
+
+```
 
