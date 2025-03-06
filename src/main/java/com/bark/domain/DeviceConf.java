@@ -137,6 +137,11 @@ public class DeviceConf implements Serializable {
         }
         int length = value.length();
         int maskLength = Math.max(length - 4, 0);
-        return "****" + value.substring(length - maskLength);
+        StringBuilder maskedValue = new StringBuilder();
+        for (int i = 0; i < maskLength; i++) {
+            maskedValue.append("*");
+        }
+        return maskedValue.toString() + value.substring(length - 4);
     }
+
 }
