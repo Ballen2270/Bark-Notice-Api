@@ -18,8 +18,8 @@ import java.io.Serializable;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BasicResponse<T> implements Serializable {
-    private static String SUCCESS_CODE = "000000";
-    private static String ERROR_CODE = "999999";
+    public static final String SUCCESS_CODE = "000000";
+    public static final String ERROR_CODE = "999999";
     private String code;
     private String msg;
     private T data;

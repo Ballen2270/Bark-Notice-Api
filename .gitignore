@@ -26,3 +26,4 @@ replay_pid*
 #config
 generatorConfig.xml
 mybatisConfigPlaceholder.properties
+/frontend/node_modules/*

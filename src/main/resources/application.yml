@@ -22,3 +22,8 @@ server:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Spring Security和JWT配置
+jwt:
+  secret: barkSecretKey
+  expiration: 86400 # 1天
