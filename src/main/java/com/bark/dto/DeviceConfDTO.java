@@ -1,36 +1,27 @@
-package com.bark.domain;
-
-import com.bark.dto.DeviceConfDTO;
+package com.bark.dto;
 
 import java.io.Serializable;
 
-public class DeviceConf implements Serializable {
+public class DeviceConfDTO implements Serializable {
     private String deviceToken;
-
     private String name;
-
     private String deviceKey;
-
     private String algorithm;
-
     private String model;
-
     private String padding;
-
     private String encodeKey;
-
     private String iv;
-
     private String status;
 
     private static final long serialVersionUID = 1L;
 
+    // Getters and Setters
     public String getDeviceToken() {
         return deviceToken;
     }
 
     public void setDeviceToken(String deviceToken) {
-        this.deviceToken = deviceToken == null ? null : deviceToken.trim();
+        this.deviceToken = deviceToken;
     }
 
     public String getName() {
@@ -38,7 +29,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setName(String name) {
-        this.name = name == null ? null : name.trim();
+        this.name = name;
     }
 
     public String getDeviceKey() {
@@ -46,7 +37,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setDeviceKey(String deviceKey) {
-        this.deviceKey = deviceKey == null ? null : deviceKey.trim();
+        this.deviceKey = deviceKey;
     }
 
     public String getAlgorithm() {
@@ -54,7 +45,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm == null ? null : algorithm.trim();
+        this.algorithm = algorithm;
     }
 
     public String getModel() {
@@ -62,7 +53,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setModel(String model) {
-        this.model = model == null ? null : model.trim();
+        this.model = model;
     }
 
     public String getPadding() {
@@ -70,7 +61,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setPadding(String padding) {
-        this.padding = padding == null ? null : padding.trim();
+        this.padding = padding;
     }
 
     public String getEncodeKey() {
@@ -78,7 +69,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setEncodeKey(String encodeKey) {
-        this.encodeKey = encodeKey == null ? null : encodeKey.trim();
+        this.encodeKey = encodeKey;
     }
 
     public String getIv() {
@@ -86,7 +77,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setIv(String iv) {
-        this.iv = iv == null ? null : iv.trim();
+        this.iv = iv;
     }
 
     public String getStatus() {
@@ -94,7 +85,7 @@ public class DeviceConf implements Serializable {
     }
 
     public void setStatus(String status) {
-        this.status = status == null ? null : status.trim();
+        this.status = status;
     }
 
     @Override
@@ -115,28 +106,5 @@ public class DeviceConf implements Serializable {
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();
-    }
-
-    public DeviceConfDTO toDTO() {
-        DeviceConfDTO dto = new DeviceConfDTO();
-        dto.setName(this.name);
-        dto.setAlgorithm(this.algorithm);
-        dto.setModel(this.model);
-        dto.setPadding(this.padding);
-        dto.setStatus(this.status);
-        dto.setDeviceToken(mask(this.deviceToken));
-        dto.setDeviceKey(mask(this.deviceKey));
-        dto.setIv(mask(this.iv));
-        dto.setEncodeKey(mask(this.encodeKey));
-        return dto;
-    }
-
-    private String mask(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        int length = value.length();
-        int maskLength = Math.max(length - 4, 0);
-        return "****" + value.substring(length - maskLength);
     }
 }

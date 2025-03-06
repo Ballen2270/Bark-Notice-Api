@@ -2,6 +2,7 @@ package com.bark.web.controller;
 
 import com.bark.core.BasicResponse;
 import com.bark.domain.DeviceConf;
+import com.bark.dto.DeviceConfDTO;
 import com.bark.dto.DeviceConfParam;
 import com.bark.mapper.DeviceConfMapper;
 import com.bark.utils.RandomStringUtil;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author Ballen  2024/10/23 17:38
@@ -40,7 +42,8 @@ public class DeviceController {
     @GetMapping("queryAll")
     private BasicResponse queryAll(){
         List<DeviceConf> confs = deviceConfMapper.selectAll();
-        return BasicResponse.successToClient("查询成功", confs);
+        List<DeviceConfDTO> dtos = confs.stream().map(DeviceConf::toDTO).collect(Collectors.toList());
+        return BasicResponse.successToClient("查询成功", dtos);
     }
 
     @PostMapping("gen")
