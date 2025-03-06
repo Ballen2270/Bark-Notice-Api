@@ -22,7 +22,23 @@ export function sendNoticePost(data) {
 export function pingService() {
   return request({
     url: '/ping',
-    method: 'get'
+    method: 'get',
+    transformResponse: [(data) => {
+      try {
+        const response = JSON.parse(data)
+        // 专门处理ping接口的响应
+        if (response.code === 200 && response.message === 'pong') {
+          return {
+            success: true,
+            data: response,
+            message: response.message
+          }
+        }
+        return data
+      } catch (e) {
+        return data
+      }
+    }]
   })
 }
 
