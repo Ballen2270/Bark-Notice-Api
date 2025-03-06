@@ -28,7 +28,7 @@ service.interceptors.response.use(
     const res = response.data
     
     // 根据BasicResponse中定义的SUCCESS_CODE="000000"来判断请求是否成功
-    if (res.code && res.code !== "000000") {
+    if (res.code && (res.code !== "000000" || res.code !==200)) {
       ElMessage({
         message: res.msg || '请求错误',
         type: 'error',
