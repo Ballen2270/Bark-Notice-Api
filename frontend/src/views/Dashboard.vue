@@ -91,7 +91,7 @@ const deviceStats = ref({
 const checkSystemStatus = async () => {
   try {
     const res = await pingService()
-    systemStatus.value.online = res.code === 200
+    systemStatus.value.online = res.data?.code === 200
     systemStatus.value.version = res.data?.version || '未知'
     systemStatus.value.lastCheck = new Date().toLocaleString()
     ElMessage.success('系统状态检查完成')
