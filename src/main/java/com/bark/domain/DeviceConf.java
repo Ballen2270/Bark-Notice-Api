@@ -131,17 +131,17 @@ public class DeviceConf implements Serializable {
         return dto;
     }
 
-    private String mask(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        int length = value.length();
-        int maskLength = Math.max(length - 4, 0);
-        StringBuilder maskedValue = new StringBuilder();
-        for (int i = 0; i < maskLength; i++) {
-            maskedValue.append("*");
-        }
-        return maskedValue.toString() + value.substring(length - 4);
+private String mask(String value) {
+    if (value == null || value.isEmpty()) {
+        return value;
     }
+    int length = value.length();
+    int maskLength = Math.max(length - 4, 0);
+    StringBuilder maskedValue = new StringBuilder(value.substring(0, 4)); // 保留前四位
+    for (int i = 0; i < maskLength; i++) {
+        maskedValue.append("*");
+    }
+    return maskedValue.toString();
+}
 
 }
