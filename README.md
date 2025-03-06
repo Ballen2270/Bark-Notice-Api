@@ -30,22 +30,25 @@ https://bark.day.app/#/deploy
 
 App Store 中下载Bark App
 
-## Bark Notice API
+## Bark Notice API+APP
 
 ### docker
 
 ```
-docker run -d --name bark-notice-api \
+docker run -d --name bark-notice-app \
   --restart always \
   --network host \
-  -e SPRING_PROFILES_ACTIVE="pro" \ #无需更改
-  -e MYSQL_HOST_NAME="127.0.0.1" \ #Mysql服务ip
-  -e MYSQL_PORT="3306" \ #Mysql服务端口
-  -e MYSQL_USERNAME="root" \ #Mysql服务账号
-  -e MYSQL_PASSWORD="root" \ #Mysql服务密码
-  -e BARK_SERVER_URL="http://192.168.11.1:9988" \ #Bark-server 部署的URL
-  -e TZ=Asia/Shanghai \ 
-  ballen2270/bark-notice-api:latest
+  -e SPRING_PROFILES_ACTIVE="pro" \
+  -e MYSQL_HOST_NAME="127.0.0.1" \
+  -e MYSQL_PORT=3306 \
+  -e MYSQL_USERNAME=root \
+  -e MYSQL_PASSWORD=root \
+  -e BARK_SERVER_URL="http://127.0.0.1:9988" \
+  -e REDIS_PORT=6379 \
+  -e REDIS_URL=127.0.0.1 \
+  -e REDIS_PASSWORD=redis \
+  -e TZ=Asia/Shanghai \
+  bark-notice-app:latest
 ```
 
 ## 配置设备
