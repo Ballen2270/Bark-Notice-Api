@@ -44,6 +44,7 @@ docker run -d --name bark-notice-app \
   -e MYSQL_USERNAME=root \
   -e MYSQL_PASSWORD=root \
   -e BARK_SERVER_URL="http://127.0.0.1:9988" \
+  -e BARK_SERVER_TOKEN=xyC9j6e2mbGijEVG7Xu934zU1MaapJvq \
   -e REDIS_PORT=6379 \
   -e REDIS_URL=127.0.0.1 \
   -e REDIS_PASSWORD=redis \
