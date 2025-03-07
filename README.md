@@ -287,3 +287,49 @@ Template模板
 
 ```
 
+# Endpoint支持
+
+请求url
+
+```
+http://127.0.0.1:8080/Status/endpoint
+```
+
+需在docker启动配置中添加BARK_SERVER_TOKEN参数
+
+```shell
+# 示例
+-e BARK_SERVER_TOKEN= xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
+```
+
+## homePage 
+
+custom api示例配置如下
+
+```yaml
+    - WebHook:
+        - Bark Notice App:
+        		#自行上传图片
+            icon: barknoticeapp.png
+            #点击serive跳转的url 一般是公网url
+            href: https://barknoticeapp.com
+            widget:
+                type: customapi
+                # 选择内网或者homepage所在服务器能访问的bark notice app url
+                url: http://127.0.0.1:9999/status/endpoint
+                refreshInterval: 10000
+                method: GET
+                headers: 
+                		# BARK_SERVER_TOKEN 中配置的TOKEN
+                    API-TOKEN: xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
+                mappings:
+                    - field: status
+                      label: 服务状态
+                    - field: activeDeviceNum
+                      label: 活跃设备数
+                      format: number
+                    - field: allDeviceNum
+                      label: 总设备数
+                      format: number
+```
+

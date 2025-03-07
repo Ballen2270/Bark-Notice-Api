@@ -12,3 +12,4 @@ spring:
     timeout: 5000
 api:
   url: ${BARK_SERVER_URL}
+  token: ${BARK_SERVER_TOKEN}

@@ -12,4 +12,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "api")
 public class ApiUrlProperties {
     private String url;
+
+    private String token;
 }

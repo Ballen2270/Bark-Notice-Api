@@ -48,7 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     "/auth/captcha/**", 
                     "/auth/checkInit", "/auth/initRegister",
                     "/notice/**", "/actuator/**",
-                    "/push/**").permitAll()
+                    "/push/**","/status/endpoint").permitAll()
             // 所有其他请求需要认证
             .anyRequest().authenticated();
         
