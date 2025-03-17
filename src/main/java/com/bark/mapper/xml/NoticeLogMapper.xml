@@ -10,6 +10,8 @@
     <result column="group" property="group" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="rec_create_time" property="recCreateTime" jdbcType="TIMESTAMP" />
+    <result column="rec_update_time" property="recUpdateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
     delete from notice_log
@@ -38,12 +40,116 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
-    select id, device_key, url, title, body, `group`, `result`, `status`
+    select id, device_key, url, title, body, `group`, `result`, `status`, rec_create_time, rec_update_time
     from notice_log
     where id = #{id,jdbcType=INTEGER}
   </select>
   <select id="selectAll" resultMap="BaseResultMap" >
-    select id, device_key, url, title, body, `group`, `result`, `status`
+    select id, device_key, url, title, body, `group`, `result`, `status`, rec_create_time, rec_update_time
     from notice_log
+  </select>
+  
+  <!-- 按条件查询通知日志 -->
+  <select id="selectByCondition" resultMap="BaseResultMap">
+    select id, device_key, url, title, body, `group`, `result`, `status`, rec_create_time, rec_update_time
+    from notice_log
+    where 1=1
+    <if test="deviceKey != null and deviceKey != ''">
+      and device_key = #{deviceKey,jdbcType=VARCHAR}
+    </if>
+    <if test="group != null and group != ''">
+      and `group` = #{group,jdbcType=VARCHAR}
+    </if>
+    <if test="status != null and status != ''">
+      and `status` = #{status,jdbcType=VARCHAR}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      and rec_create_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and rec_create_time &lt;= #{endTime}
+    </if>
+    order by rec_create_time desc
+  </select>
+  
+  <!-- 按日期统计通知数量 -->
+  <select id="countByDate" resultType="java.util.Map">
+    select 
+    <choose>
+      <when test="dateType == 'year'">
+        DATE_FORMAT(rec_create_time, '%Y') as dateGroup,
+      </when>
+      <when test="dateType == 'month'">
+        DATE_FORMAT(rec_create_time, '%Y-%m') as dateGroup,
+      </when>
+      <when test="dateType == 'day'">
+        DATE_FORMAT(rec_create_time, '%Y-%m-%d') as dateGroup,
+      </when>
+      <otherwise>
+        DATE_FORMAT(rec_create_time, '%Y-%m-%d') as dateGroup,
+      </otherwise>
+    </choose>
+    count(*) as count,
+    sum(case when status = 'SUCCESS' then 1 else 0 end) as successCount,
+    sum(case when status = 'FAILED' then 1 else 0 end) as failedCount
+    from notice_log
+    where 1=1
+    <if test="beginTime != null and beginTime != ''">
+      and rec_create_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and rec_create_time &lt;= #{endTime}
+    </if>
+    group by dateGroup
+    order by dateGroup
+  </select>
+  
+  <!-- 按状态统计 -->
+  <select id="countByStatus" resultType="java.util.Map">
+    select 
+      status as name,
+      count(*) as value
+    from notice_log
+    where 1=1
+    <if test="beginTime != null and beginTime != ''">
+      and rec_create_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and rec_create_time &lt;= #{endTime}
+    </if>
+    group by status
+  </select>
+  
+  <!-- 按分组统计 -->
+  <select id="countByGroup" resultType="java.util.Map">
+    select 
+      ifnull(`group`, '未分组') as name,
+      count(*) as value
+    from notice_log
+    where 1=1
+    <if test="beginTime != null and beginTime != ''">
+      and rec_create_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and rec_create_time &lt;= #{endTime}
+    </if>
+    group by `group`
+  </select>
+  
+  <!-- 按设备统计 -->
+  <select id="countByDevice" resultType="java.util.Map">
+    select 
+      IFNULL(d.name, '未知设备') as name,
+      count(*) as value
+    from notice_log n
+    left join device_conf d on n.device_key = d.device_key
+    where 1=1
+    <if test="beginTime != null and beginTime != ''">
+      and n.rec_create_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and n.rec_create_time &lt;= #{endTime}
+    </if>
+    group by d.name
   </select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.bark.domain;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class NoticeLog implements Serializable {
     private Integer id;
@@ -18,6 +19,10 @@ public class NoticeLog implements Serializable {
     private String result;
 
     private String status;
+    
+    private Date recCreateTime;
+    
+    private Date recUpdateTime;
 
     private static final long serialVersionUID = 1L;
 
@@ -85,22 +90,35 @@ public class NoticeLog implements Serializable {
         this.status = status == null ? null : status.trim();
     }
 
+    public Date getRecCreateTime() {
+        return recCreateTime;
+    }
+
+    public void setRecCreateTime(Date recCreateTime) {
+        this.recCreateTime = recCreateTime;
+    }
+
+    public Date getRecUpdateTime() {
+        return recUpdateTime;
+    }
+
+    public void setRecUpdateTime(Date recUpdateTime) {
+        this.recUpdateTime = recUpdateTime;
+    }
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", deviceKey=").append(deviceKey);
-        sb.append(", url=").append(url);
-        sb.append(", title=").append(title);
-        sb.append(", body=").append(body);
-        sb.append(", group=").append(group);
-        sb.append(", result=").append(result);
-        sb.append(", status=").append(status);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return "NoticeLog{" +
+                "id=" + id +
+                ", deviceKey='" + deviceKey + '\'' +
+                ", url='" + url + '\'' +
+                ", title='" + title + '\'' +
+                ", body='" + body + '\'' +
+                ", group='" + group + '\'' +
+                ", result='" + result + '\'' +
+                ", status='" + status + '\'' +
+                ", recCreateTime=" + recCreateTime +
+                ", recUpdateTime=" + recUpdateTime +
+                '}';
     }
 }

@@ -36,6 +36,18 @@ const routes = [
         name: 'Users',
         component: () => import('../views/Users.vue'),
         meta: { title: '用户管理', requiresAuth: true }
+      },
+      {
+        path: 'log-dashboard',
+        name: 'LogDashboard',
+        component: () => import('../views/LogDashboard.vue'),
+        meta: { title: '日志数据', requiresAuth: true }
+      },
+      {
+        path: 'log-detail',
+        name: 'LogDetail',
+        component: () => import('../views/LogDetail.vue'),
+        meta: { title: '日志详情', requiresAuth: true }
       }
     ]
   },

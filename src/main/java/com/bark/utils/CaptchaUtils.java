@@ -55,7 +55,7 @@ public class CaptchaUtils {
         
         // 绘制干扰线
         g2d.setColor(Color.LIGHT_GRAY);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 60; i++) {
             int x1 = random.nextInt(WIDTH);
             int y1 = random.nextInt(HEIGHT);
             int x2 = x1 + random.nextInt(20) - 10;
@@ -64,7 +64,7 @@ public class CaptchaUtils {
         }
         
         // 绘制噪点
-        for (int i = 0; i < 80; i++) {
+        for (int i = 0; i < 160; i++) {
             int x = random.nextInt(WIDTH);
             int y = random.nextInt(HEIGHT);
             image.setRGB(x, y, random.nextInt(0xFFFFFF));
