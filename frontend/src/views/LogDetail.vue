@@ -165,10 +165,10 @@ const fetchLogList = async () => {
     })
     
     if (res.code === '000000') {
-      logList.value = res.data
-      // 假设后端返回的是完整的数据列表，前端进行分页处理
-      // 实际项目中应该由后端返回分页后的数据和总数
-      total.value = res.data.length
+      logList.value = res.data.data || []
+      total.value = res.data.total || 0
+      currentPage.value = res.data.pageNum || 1
+      pageSize.value = res.data.pageSize || 10
     } else {
       ElMessage.error(res.msg || '获取日志列表失败')
     }

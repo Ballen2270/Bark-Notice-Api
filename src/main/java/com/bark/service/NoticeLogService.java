@@ -1,6 +1,7 @@
 package com.bark.service;
 
 import com.bark.domain.NoticeLog;
+import com.github.pagehelper.PageInfo;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,21 @@ public interface NoticeLogService {
     List<NoticeLog> queryByCondition(String deviceKey, String group, 
                                     String beginTime, String endTime,
                                     String status);
+    
+    /**
+     * 根据条件分页查询通知日志
+     * @param deviceKey 设备key
+     * @param group 分组
+     * @param beginTime 开始时间
+     * @param endTime 结束时间
+     * @param status 状态
+     * @param pageNum 页码
+     * @param pageSize 每页条数
+     * @return 分页日志列表
+     */
+    PageInfo<NoticeLog> queryByConditionPage(String deviceKey, String group, 
+                                            String beginTime, String endTime,
+                                            String status, Integer pageNum, Integer pageSize);
     
     /**
      * 按日期统计通知数量
