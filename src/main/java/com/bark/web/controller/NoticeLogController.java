@@ -3,11 +3,13 @@ package com.bark.web.controller;
 import com.bark.core.BasicResponse;
 import com.bark.domain.NoticeLog;
 import com.bark.service.NoticeLogService;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 通知日志控制器
@@ -20,19 +22,38 @@ public class NoticeLogController {
     private NoticeLogService noticeLogService;
 
     /**
-     * 按条件查询通知日志
+     * 按条件查询通知日志（分页）
      */
     @GetMapping("/list")
     public BasicResponse<?> getLogList(
             @RequestParam(required = false) String group,
             @RequestParam(required = false) String beginTime,
             @RequestParam(required = false) String endTime,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(value = "page", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         
-        List<NoticeLog> logs = noticeLogService.queryByCondition(
-                null, group, beginTime, endTime, status);
+        // 验证参数有效性
+        if (pageNum == null || pageNum < 1) {
+            pageNum = 1;
+        }
+        if (pageSize == null || pageSize < 1 || pageSize > 100) {
+            pageSize = 10;
+        }
         
-        return BasicResponse.successToClient("获取日志列表成功", logs);
+        // 使用分页查询
+        PageInfo<NoticeLog> pageInfo = noticeLogService.queryByConditionPage(
+                null, group, beginTime, endTime, status, pageNum, pageSize);
+        
+        // 构建返回结果
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("data", pageInfo.getList());
+        resultMap.put("total", pageInfo.getTotal());
+        resultMap.put("pages", pageInfo.getPages());
+        resultMap.put("pageNum", pageInfo.getPageNum());
+        resultMap.put("pageSize", pageInfo.getPageSize());
+        
+        return BasicResponse.successToClient("获取日志列表成功", resultMap);
     }
 
     /**
