@@ -15,42 +15,96 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 <style>
 /* CSS变量定义 - iOS风格主题 */
 :root {
+  /* 主要颜色 */
   --primary-color: #007aff;
+  --primary-light: #58c8fa;
+  --primary-dark: #0056d6;
   --success-color: #34c759;
+  --success-light: #32c864;
   --warning-color: #ff9500;
+  --warning-light: #ffb432;
   --danger-color: #ff3b30;
+  --danger-light: #ff645a;
   --info-color: #5ac8fa;
-  
+  --info-light: #17a2b8;
+
+  /* 文本颜色 */
   --text-primary: #1d1d1f;
   --text-secondary: #86868b;
   --text-tertiary: #c7c7cc;
-  
+  --text-inverse: #ffffff;
+
+  /* 背景颜色 */
   --bg-primary: #ffffff;
   --bg-secondary: #f2f2f7;
   --bg-tertiary: #ffffff;
-  
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* 边框颜色 */
   --border-color: #d1d1d6;
   --border-light: #e5e5ea;
-  
+  --border-glass: rgba(255, 255, 255, 0.8);
+
+  /* 增强阴影系统 */
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-heavy: 0 8px 25px rgba(0, 0, 0, 0.2);
-  
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-card-hover: 0 12px 30px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(0, 122, 255, 0.3);
+
+  /* 圆角 */
   --radius-small: 8px;
   --radius-medium: 12px;
   --radius-large: 16px;
-  
+  --radius-xl: 20px;
+  --radius-full: 50%;
+
+  /* 间距 */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-  
+  --spacing-2xl: 48px;
+
+  /* 字体大小 */
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-md: 16px;
   --font-size-lg: 18px;
   --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+
+  /* 字体粗细 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 行高 */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.8;
+
+  /* 动画时长 */
+  --duration-fast: 0.2s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.5s;
+
+  /* 缓动函数 */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-index层级 */
+  --z-dropdown: 1000;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 2000;
 }
 
 /* 全局重置 */
