@@ -1,105 +1,407 @@
 <template>
   <div class="notices-container">
-    <el-card class="box-card">
-      <template #header>
-        <div class="card-header">
-          <span>发送通知</span>
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">
+            <el-icon class="title-icon"><ChatDotRound /></el-icon>
+            通知管理
+          </h1>
+          <p class="page-subtitle">发送和管理推送通知</p>
         </div>
-      </template>
-      
-      <el-form 
-        ref="noticeFormRef"
-        :model="noticeForm"
-        :rules="rules"
-        label-width="80px">
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="noticeForm.title" placeholder="请输入通知标题" />
-        </el-form-item>
-        
-        <el-form-item label="内容" prop="body">
-          <el-input 
-            v-model="noticeForm.body" 
-            type="textarea" 
-            :rows="4"
-            placeholder="请输入通知内容" />
-        </el-form-item>
-        
-        <el-form-item label="分组" prop="group">
-          <el-input v-model="noticeForm.group" placeholder="请输入分组名称（可选）" />
-        </el-form-item>
-        
-        <el-form-item>
-          <el-button type="primary" @click="submitForm" :loading="loading">发送通知</el-button>
-          <el-button @click="resetForm">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-    
-    <el-card class="box-card device-list-card">
-      <template #header>
-        <div class="card-header">
-          <span>设备列表</span>
-          <el-button type="primary" size="small" @click="fetchDevices">刷新</el-button>
+        <div class="header-right">
+          <el-button @click="refreshAll" type="success" size="large" class="refresh-all-btn">
+            <el-icon><Refresh /></el-icon>
+            刷新全部
+          </el-button>
         </div>
-      </template>
-      
-      <el-table
-        v-loading="deviceLoading"
-        :data="deviceList"
-        border
-        style="width: 100%">
-        <el-table-column prop="deviceToken" label="设备Token" width="180" />
-        <el-table-column prop="name" label="设备名称" width="150" />
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 'ACTIVE' ? 'success' : 'danger'">
-              {{ scope.row.status === 'ACTIVE' ? '激活' : '停用' }}
-            </el-tag>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <!-- 左侧：发送通知表单 -->
+      <div class="notice-form-section">
+        <el-card class="form-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <div class="header-title">
+                <el-icon class="card-icon"><Bell /></el-icon>
+                <span>发送新通知</span>
+              </div>
+              <div class="form-stats">
+                <span class="stats-item">
+                  激活设备: <strong>{{ deviceStats.active }}</strong>
+                </span>
+              </div>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column label="操作" width="150">
-          <template #default="scope">
-            <el-button 
-              type="success" 
-              size="small" 
-              :disabled="scope.row.status !== 'ACTIVE'"
-              @click="sendToDevice(scope.row)">发送通知</el-button>
+
+          <el-form
+            ref="noticeFormRef"
+            :model="noticeForm"
+            :rules="rules"
+            class="notice-form"
+            @submit.prevent="submitForm"
+          >
+            <div class="form-row">
+              <el-form-item prop="title" class="full-width">
+                <div class="input-wrapper">
+                  <el-icon class="input-icon"><Document /></el-icon>
+                  <el-input
+                    v-model="noticeForm.title"
+                    placeholder="请输入通知标题"
+                    size="large"
+                    clearable
+                    maxlength="100"
+                    show-word-limit
+                  />
+                </div>
+              </el-form-item>
+            </div>
+
+            <div class="form-row">
+              <el-form-item prop="body" class="full-width">
+                <div class="textarea-wrapper">
+                  <el-icon class="input-icon"><ChatLineSquare /></el-icon>
+                  <el-input
+                    v-model="noticeForm.body"
+                    type="textarea"
+                    :rows="5"
+                    placeholder="请输入通知内容"
+                    size="large"
+                    resize="none"
+                    maxlength="500"
+                    show-word-limit
+                  />
+                </div>
+              </el-form-item>
+            </div>
+
+            <div class="form-row">
+              <el-form-item prop="group" class="full-width">
+                <div class="input-wrapper">
+                  <el-icon class="input-icon"><CollectionTag /></el-icon>
+                  <el-input
+                    v-model="noticeForm.group"
+                    placeholder="请输入分组名称（可选）"
+                    size="large"
+                    clearable
+                  />
+                </div>
+              </el-form-item>
+            </div>
+
+            <div class="form-row">
+              <el-form-item class="full-width">
+                <div class="advanced-options">
+                  <el-button @click="showAdvanced = !showAdvanced" type="info" text>
+                    <el-icon><Setting /></el-icon>
+                    高级选项
+                  </el-button>
+                </div>
+              </el-form-item>
+            </div>
+
+            <transition name="slide-down">
+              <div v-show="showAdvanced" class="advanced-section">
+                <div class="form-row">
+                  <el-form-item class="full-width">
+                    <div class="input-wrapper">
+                      <el-icon class="input-icon"><Link /></el-icon>
+                      <el-input
+                        v-model="noticeForm.url"
+                        placeholder="跳转链接（可选）"
+                        size="large"
+                        clearable
+                      />
+                    </div>
+                  </el-form-item>
+                </div>
+
+                <div class="form-row">
+                  <el-form-item class="full-width">
+                    <div class="input-wrapper">
+                      <el-icon class="input-icon"><Picture /></el-icon>
+                      <el-input
+                        v-model="noticeForm.icon"
+                        placeholder="图标URL（可选）"
+                        size="large"
+                        clearable
+                      />
+                    </div>
+                  </el-form-item>
+                </div>
+              </div>
+            </transition>
+
+            <div class="form-actions">
+              <el-button
+                type="primary"
+                @click="submitForm"
+                :loading="loading"
+                size="large"
+                class="submit-btn"
+              >
+                <el-icon><Promotion /></el-icon>
+                发送通知
+              </el-button>
+              <el-button
+                @click="resetForm"
+                size="large"
+                class="reset-btn"
+              >
+                <el-icon><RefreshLeft /></el-icon>
+                重置
+              </el-button>
+            </div>
+          </el-form>
+        </el-card>
+
+        <!-- 快速模板 -->
+        <el-card class="template-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <div class="header-title">
+                <el-icon class="card-icon"><Files /></el-icon>
+                <span>快速模板</span>
+              </div>
+            </div>
           </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
-    
-    <el-card class="box-card register-card">
-      <template #header>
-        <div class="card-header">
-          <span>注册新设备</span>
-        </div>
-      </template>
-      
-      <el-form 
-        ref="registerFormRef"
-        :model="registerForm"
-        :rules="registerRules"
-        label-width="100px">
-        <el-form-item label="设备Token" prop="devicetoken">
-          <el-input v-model="registerForm.devicetoken" placeholder="请输入设备Token" />
-        </el-form-item>
-        
-        <el-form-item label="密钥" prop="key">
-          <el-input v-model="registerForm.key" placeholder="请输入密钥（可选）" />
-        </el-form-item>
-        
-        <el-form-item>
-          <el-button type="primary" @click="registerDevice" :loading="registerLoading">注册设备</el-button>
-          <el-button @click="resetRegisterForm">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+
+          <div class="template-list">
+            <div
+              v-for="template in noticeTemplates"
+              :key="template.id"
+              class="template-item"
+              @click="applyTemplate(template)"
+            >
+              <div class="template-icon">
+                <el-icon><component :is="template.icon" /></el-icon>
+              </div>
+              <div class="template-content">
+                <div class="template-title">{{ template.title }}</div>
+                <div class="template-preview">{{ template.body.substring(0, 30) }}...</div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+      </div>
+
+      <!-- 右侧：设备管理和注册 -->
+      <div class="device-section">
+        <!-- 设备列表 -->
+        <el-card class="device-list-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <div class="header-title">
+                <el-icon class="card-icon"><Cellphone /></el-icon>
+                <span>设备列表</span>
+              </div>
+              <div class="device-stats">
+                <el-tag type="success" size="small">
+                  {{ deviceStats.active }} 激活
+                </el-tag>
+                <el-tag type="info" size="small">
+                  {{ deviceStats.total }} 总计
+                </el-tag>
+              </div>
+              <el-button
+                @click="fetchDevices"
+                type="primary"
+                size="small"
+                class="refresh-btn"
+                :loading="deviceLoading"
+              >
+                <el-icon><Refresh /></el-icon>
+              </el-button>
+            </div>
+          </template>
+
+          <!-- 搜索框 -->
+          <div class="device-search">
+            <el-input
+              v-model="deviceSearchText"
+              placeholder="搜索设备名称或Token..."
+              size="small"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+          </div>
+
+          <!-- 设备列表 - 桌面端 -->
+          <div class="device-table desktop-only">
+            <div v-if="deviceLoading" class="loading-placeholder">
+              <el-skeleton :rows="3" animated />
+            </div>
+            <div v-else-if="filteredDeviceList.length === 0" class="empty-state">
+              <el-empty description="暂无设备" />
+            </div>
+            <div v-else class="device-items">
+              <div
+                v-for="device in filteredDeviceList"
+                :key="device.deviceToken"
+                class="device-item"
+                :class="{ 'inactive': device.status !== 'ACTIVE' }"
+              >
+                <div class="device-info">
+                  <div class="device-name">
+                    <el-icon class="device-icon"><Cellphone /></el-icon>
+                    <span>{{ device.name || '未命名设备' }}</span>
+                  </div>
+                  <div class="device-token">
+                    <el-icon class="token-icon"><Key /></el-icon>
+                    <span>{{ device.deviceToken }}</span>
+                  </div>
+                </div>
+                <div class="device-status">
+                  <el-tag
+                    :type="device.status === 'ACTIVE' ? 'success' : 'danger'"
+                    size="small"
+                  >
+                    {{ device.status === 'ACTIVE' ? '激活' : '停用' }}
+                  </el-tag>
+                </div>
+                <div class="device-actions">
+                  <el-button
+                    type="success"
+                    size="small"
+                    :disabled="device.status !== 'ACTIVE'"
+                    @click="sendToDevice(device)"
+                    class="send-btn"
+                  >
+                    <el-icon><Position /></el-icon>
+                    发送
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 设备列表 - 移动端 -->
+          <div class="mobile-device-list mobile-only">
+            <div v-if="deviceLoading" class="loading-placeholder">
+              <el-skeleton :rows="3" animated />
+            </div>
+            <div v-else-if="filteredDeviceList.length === 0" class="empty-state">
+              <el-empty description="暂无设备" />
+            </div>
+            <div v-else class="device-cards">
+              <div
+                v-for="device in filteredDeviceList"
+                :key="device.deviceToken"
+                class="device-card"
+                :class="{ 'inactive': device.status !== 'ACTIVE' }"
+              >
+                <div class="card-header">
+                  <div class="device-name">
+                    <el-icon class="device-icon"><Cellphone /></el-icon>
+                    <span>{{ device.name || '未命名设备' }}</span>
+                  </div>
+                  <el-tag
+                    :type="device.status === 'ACTIVE' ? 'success' : 'danger'"
+                    size="small"
+                  >
+                    {{ device.status === 'ACTIVE' ? '激活' : '停用' }}
+                  </el-tag>
+                </div>
+                <div class="card-content">
+                  <div class="info-item">
+                    <span class="label">Token:</span>
+                    <span class="value">{{ device.deviceToken }}</span>
+                  </div>
+                </div>
+                <div class="card-actions">
+                  <el-button
+                    type="success"
+                    size="small"
+                    :disabled="device.status !== 'ACTIVE'"
+                    @click="sendToDevice(device)"
+                    class="mobile-send-btn"
+                  >
+                    <el-icon><Position /></el-icon>
+                    发送通知
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+
+        <!-- 注册新设备 -->
+        <el-card class="register-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <div class="header-title">
+                <el-icon class="card-icon"><Plus /></el-icon>
+                <span>注册新设备</span>
+              </div>
+            </div>
+          </template>
+
+          <el-form
+            ref="registerFormRef"
+            :model="registerForm"
+            :rules="registerRules"
+            class="register-form"
+            @submit.prevent="registerDevice"
+          >
+            <el-form-item prop="devicetoken">
+              <div class="input-wrapper">
+                <el-icon class="input-icon"><Key /></el-icon>
+                <el-input
+                  v-model="registerForm.devicetoken"
+                  placeholder="请输入设备Token"
+                  size="large"
+                  clearable
+                />
+              </div>
+            </el-form-item>
+
+            <el-form-item prop="key">
+              <div class="input-wrapper">
+                <el-icon class="input-icon"><Lock /></el-icon>
+                <el-input
+                  v-model="registerForm.key"
+                  placeholder="请输入密钥（可选）"
+                  size="large"
+                  clearable
+                />
+              </div>
+            </el-form-item>
+
+            <div class="form-actions">
+              <el-button
+                type="primary"
+                @click="registerDevice"
+                :loading="registerLoading"
+                size="large"
+                class="submit-btn"
+              >
+                <el-icon><Plus /></el-icon>
+                注册设备
+              </el-button>
+              <el-button
+                @click="resetRegisterForm"
+                size="large"
+                class="reset-btn"
+              >
+                <el-icon><RefreshLeft /></el-icon>
+                重置
+              </el-button>
+            </div>
+          </el-form>
+        </el-card>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { sendNoticePost, registerDevice as registerDeviceApi } from '@/api/notice'
 import { getAllDevices } from '@/api/device'
 import { ElMessage } from 'element-plus'
@@ -108,6 +410,7 @@ const loading = ref(false)
 const deviceLoading = ref(false)
 const registerLoading = ref(false)
 const deviceList = ref([])
+const deviceSearchText = ref('')
 const noticeFormRef = ref(null)
 const registerFormRef = ref(null)
 
@@ -136,6 +439,30 @@ const registerRules = {
     { required: true, message: '请输入设备Token', trigger: 'blur' }
   ]
 }
+
+// 设备统计计算属性
+const deviceStats = computed(() => {
+  const devices = deviceList.value || []
+  return {
+    total: devices.length,
+    active: devices.filter(device => device.status === 'ACTIVE').length
+  }
+})
+
+// 过滤设备列表
+const filteredDeviceList = computed(() => {
+  const devices = deviceList.value || []
+  const searchText = deviceSearchText.value.toLowerCase().trim()
+
+  if (!searchText) {
+    return devices
+  }
+
+  return devices.filter(device =>
+    (device.name && device.name.toLowerCase().includes(searchText)) ||
+    (device.deviceToken && device.deviceToken.toLowerCase().includes(searchText))
+  )
+})
 
 // 获取所有设备
 const fetchDevices = async () => {
@@ -242,6 +569,16 @@ const resetForm = () => {
 const resetRegisterForm = () => {
   if (registerFormRef.value) {
     registerFormRef.value.resetFields()
+  }
+}
+
+// 刷新所有数据
+const refreshAll = async () => {
+  try {
+    await fetchDevices()
+    ElMessage.success('数据刷新成功')
+  } catch (error) {
+    ElMessage.error('数据刷新失败')
   }
 }
 
