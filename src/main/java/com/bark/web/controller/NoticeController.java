@@ -77,12 +77,12 @@ public class NoticeController {
 
     @GetMapping("notice")
     private BasicResponse notice(@RequestParam String title, @RequestParam String body, @RequestParam(required = false) String group){
-        return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group)));
+        return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group, null)));
     }
 
     @GetMapping("notice/{title}/{body}")
     private BasicResponse noticePathVariable(@PathVariable("title") String title, @PathVariable("body") String body, @RequestParam(required = false) String group){
-        return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group)));
+        return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group, null)));
     }
 
 

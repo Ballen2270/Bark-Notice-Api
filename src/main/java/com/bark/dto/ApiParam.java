@@ -1,5 +1,8 @@
 package com.bark.dto;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +21,8 @@ public class ApiParam {
     @NotBlank(message = "消息不能为空")
     private String body;
     private String group;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JSONField(serialzeFeatures = SerializerFeature.WriteNullStringAsEmpty)
+    private String url;
 }
