@@ -51,6 +51,29 @@ docker run -d --name bark-notice-app \
   -e TZ=Asia/Shanghai \
   bark-notice-app:latest
 ```
+### docker compose
+```
+services:
+  bark-notice-app:
+    image: ballen2270/bark-notice-app:latest
+    container_name: bark-notice-app
+    restart: always
+    ports:
+      - "3000:3000" # 前端
+      - "8080:8080" # api服务
+    environment:
+      - SPRING_PROFILES_ACTIVE=pro
+      - MYSQL_HOST_NAME=127.0.0.1
+      - MYSQL_PORT=3306
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=root
+      - BARK_SERVER_URL=http://127.0.0.1:9988
+      - BARK_SERVER_TOKEN=xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
+      - REDIS_PORT=6379
+      - REDIS_URL=127.0.0.1
+      - REDIS_PASSWORD=redis
+      - TZ="Asia/Shanghai"
+```
 
 ## 配置设备
 
@@ -170,7 +193,8 @@ docker run -d --name bark-notice-app \
 {
     "body": "body", #消息内容
     "group": "group", #消息分组
-    "title": "title" #通知标题
+    "title": "title", #通知标题
+    "url": "https://xxx.com" #点击推送打开URL
 }
 ```
 
@@ -303,7 +327,7 @@ http://127.0.0.1:8080/Status/endpoint
 -e BARK_SERVER_TOKEN= xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
 ```
 
-## homePage 
+## homepage
 
 custom api示例配置如下
 
