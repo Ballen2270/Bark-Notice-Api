@@ -177,11 +177,6 @@
             </div>
           </div>
 
-          <div v-if="selectedLog.url">
-            <label class="block text-xs font-medium text-gray-500 uppercase">URL</label>
-            <a :href="selectedLog.url" target="_blank" class="mt-1 text-sm text-blue-600 hover:underline truncate block">{{ selectedLog.url }}</a>
-          </div>
-          
           <div v-if="selectedLog.result">
              <label class="block text-xs font-medium text-gray-500 uppercase">Result</label>
              <pre class="mt-1 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg overflow-x-auto">{{ selectedLog.result }}</pre>

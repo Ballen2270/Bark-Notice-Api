@@ -6,6 +6,14 @@
       <p class="text-gray-500 mt-1">Push notifications to your devices</p>
     </div>
 
+    <!-- Alert Component -->
+    <Alert 
+      v-model="alert.show" 
+      :type="alert.type" 
+      :title="alert.title" 
+      :message="alert.message" 
+    />
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Form Section -->
       <div class="lg:col-span-2 space-y-6">
@@ -143,6 +151,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/vue/24/outline'
 import { sendNoticePost } from '../api/notice'
+import Alert from '../components/Alert.vue'
 
 const loading = ref(false)
 const showAdvanced = ref(false)
@@ -155,6 +164,20 @@ const form = reactive({
   icon: ''
 })
 
+const alert = reactive({
+  show: false,
+  type: 'success',
+  title: '',
+  message: ''
+})
+
+const showAlert = (type, title, message = '') => {
+  alert.type = type
+  alert.title = title
+  alert.message = message
+  alert.show = true
+}
+
 const templates = [
   { title: 'Test Notification', body: 'This is a test notification from Bark Admin.' },
   { title: 'Server Alert', body: 'Server CPU usage is high (90%). Please check.', group: 'Alerts' },
@@ -165,12 +188,11 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     await sendNoticePost(form)
-    // Show success message (using native alert for now or implement toast later)
-    alert('Notice sent successfully!')
+    showAlert('success', 'Notice sent successfully!', 'Your notification has been delivered.')
     resetForm()
   } catch (e) {
     console.error(e)
-    alert('Failed to send notice.')
+    showAlert('error', 'Failed to send notice', 'Please try again later.')
   } finally {
     loading.value = false
   }

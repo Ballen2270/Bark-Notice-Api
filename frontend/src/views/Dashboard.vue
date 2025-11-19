@@ -176,9 +176,11 @@ const refreshData = async () => {
     // System Status
     try {
       const res = await pingService()
+      // Check for both number 200 and string '000000' codes
+      const isOnline = res.code === 200 || res.code === '200' || res.success === true
       systemStatus.value = { 
-        online: res.code === 200, 
-        version: res.data?.version || '1.0.0' 
+        online: isOnline, 
+        version: res.data?.version || res.version || '1.0.0' 
       }
     } catch {
       systemStatus.value = { online: false, version: '-' }
@@ -196,13 +198,19 @@ const refreshData = async () => {
       console.error(e)
     }
 
-    // Logs
+    // Logs - Get last 7 days of data
     try {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = new Date()
+      const sevenDaysAgo = new Date(today)
+      sevenDaysAgo.setDate(today.getDate() - 6) // Last 7 days including today
+      
+      const endTime = today.toISOString().slice(0, 10)
+      const beginTime = sevenDaysAgo.toISOString().slice(0, 10)
+      
       const res = await countByDate({
         dateType: 'day',
-        beginTime: today,
-        endTime: today
+        beginTime: beginTime,
+        endTime: endTime
       })
       if (res.code === '000000') {
         dateData.value = res.data || []
