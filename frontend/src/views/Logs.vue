@@ -1,12 +1,12 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6 lg:space-y-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Logs</h1>
-        <p class="text-gray-500 mt-1">History of sent notifications</p>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Logs</h1>
+        <p class="text-sm lg:text-base text-gray-500 mt-1">History of sent notifications</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 self-start sm:self-auto">
         <button 
           @click="refreshData" 
           :disabled="loading"
@@ -31,7 +31,7 @@
       </div>
       <select 
         v-model="filters.status"
-        class="px-4 py-2 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+        class="w-full md:w-auto px-4 py-2 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
         @change="handleFilter"
       >
         <option value="">All Status</option>

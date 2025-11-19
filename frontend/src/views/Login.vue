@@ -4,8 +4,8 @@
     <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px]"></div>
     <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-[100px]"></div>
 
-    <div class="w-full max-w-md p-8 relative z-10">
-      <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8">
+    <div class="w-full max-w-md p-4 sm:p-8 relative z-10">
+      <div class="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8">
         <div class="text-center mb-8">
           <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span class="text-2xl font-bold">B</span>

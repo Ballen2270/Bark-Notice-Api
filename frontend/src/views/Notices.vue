@@ -14,10 +14,10 @@
       :message="alert.message" 
     />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
       <!-- Form Section -->
       <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        <div class="bg-white p-5 lg:p-8 rounded-3xl shadow-sm border border-gray-100">
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2 ml-1">Title</label>

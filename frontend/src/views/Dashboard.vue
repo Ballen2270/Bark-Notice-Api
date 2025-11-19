@@ -1,30 +1,30 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6 lg:space-y-8">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p class="text-gray-500 mt-1">Overview of your notification system</p>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p class="text-sm lg:text-base text-gray-500 mt-1">Overview of your notification system</p>
       </div>
       <button 
         @click="refreshData" 
         :disabled="loading"
-        class="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 active:scale-95"
+        class="self-start sm:self-auto p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 active:scale-95"
       >
         <ArrowPathIcon class="w-6 h-6" :class="{ 'animate-spin': loading }" />
       </button>
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
       <!-- Total Notices -->
-      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+      <div class="bg-white p-5 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
         <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
           <BellIcon class="w-16 h-16 text-blue-500" />
         </div>
         <div class="relative z-10">
           <p class="text-sm font-medium text-gray-500">Total Notices</p>
-          <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ totalCount }}</h3>
+          <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ totalCount }}</h3>
           <div class="mt-4 flex items-center text-sm text-green-600 bg-green-50 w-fit px-2 py-1 rounded-lg">
             <ArrowUpIcon class="w-3 h-3 mr-1" />
             <span>Today</span>
@@ -33,13 +33,13 @@
       </div>
 
       <!-- Success Rate -->
-      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+      <div class="bg-white p-5 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
         <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
           <CheckCircleIcon class="w-16 h-16 text-green-500" />
         </div>
         <div class="relative z-10">
           <p class="text-sm font-medium text-gray-500">Success Rate</p>
-          <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ successRate }}%</h3>
+          <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ successRate }}%</h3>
           <div class="mt-4 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
             <div class="bg-green-500 h-full rounded-full transition-all duration-1000" :style="{ width: `${successRate}%` }"></div>
           </div>
@@ -47,19 +47,19 @@
       </div>
 
       <!-- Active Devices -->
-      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+      <div class="bg-white p-5 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
         <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
           <DevicePhoneMobileIcon class="w-16 h-16 text-purple-500" />
         </div>
         <div class="relative z-10">
           <p class="text-sm font-medium text-gray-500">Active Devices</p>
-          <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ deviceStats.active }}</h3>
+          <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ deviceStats.active }}</h3>
           <p class="text-sm text-gray-400 mt-1">of {{ deviceStats.total }} registered</p>
         </div>
       </div>
 
       <!-- System Status -->
-      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+      <div class="bg-white p-5 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
         <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
           <ServerIcon class="w-16 h-16 text-orange-500" />
         </div>
@@ -67,7 +67,7 @@
           <p class="text-sm font-medium text-gray-500">System Status</p>
           <div class="flex items-center mt-2">
             <div class="w-3 h-3 rounded-full mr-2" :class="systemStatus.online ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
-            <h3 class="text-xl font-bold text-gray-900">{{ systemStatus.online ? 'Online' : 'Offline' }}</h3>
+            <h3 class="text-xl lg:text-xl font-bold text-gray-900">{{ systemStatus.online ? 'Online' : 'Offline' }}</h3>
           </div>
           <p class="text-sm text-gray-400 mt-2">Ver: {{ systemStatus.version }}</p>
         </div>
@@ -75,8 +75,8 @@
     </div>
 
     <!-- Recent Activity & Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+      <div class="lg:col-span-2 bg-white p-5 lg:p-8 rounded-3xl shadow-sm border border-gray-100">
         <h3 class="text-lg font-bold text-gray-900 mb-6">Notice Traffic</h3>
 
         <!-- 数据未加载或加载中时显示占位符 -->
@@ -88,9 +88,9 @@
         </div>
 
         <!-- 数据加载完成后显示图表 -->
-        <div v-else class="h-64 flex justify-between gap-2">
+        <div v-else class="h-64 flex justify-between gap-2 overflow-x-auto pb-2 no-scrollbar">
           <!-- Simple CSS Bar Chart -->
-          <div v-for="(item, index) in chartData" :key="index" class="flex-1 flex flex-col justify-end items-center group h-full">
+          <div v-for="(item, index) in chartData" :key="index" class="flex-1 min-w-[40px] flex flex-col justify-end items-center group h-full">
             <div
               class="w-full bg-blue-100 rounded-t-lg group-hover:bg-blue-200 transition-colors relative"
               :style="{ height: `${(item.count / maxCount) * 85}%` }"
@@ -99,7 +99,7 @@
                  {{ item.count }} notices
                </div>
             </div>
-            <span class="text-xs text-gray-400 mt-2">{{ item.label }}</span>
+            <span class="text-xs text-gray-400 mt-2 whitespace-nowrap">{{ item.label }}</span>
           </div>
         </div>
 
@@ -112,7 +112,7 @@
         </div>
       </div>
 
-      <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+      <div class="bg-white p-5 lg:p-8 rounded-3xl shadow-sm border border-gray-100">
         <h3 class="text-lg font-bold text-gray-900 mb-6">Quick Actions</h3>
         <div class="space-y-4">
           <button @click="$router.push('/notices')" class="w-full flex items-center p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors group">

@@ -154,7 +154,7 @@
     <!-- Modal -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" @click="showModal = false"></div>
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
           <h3 class="text-lg font-bold text-gray-900">{{ isEdit ? 'Edit Device' : 'Add Device' }}</h3>
           <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
