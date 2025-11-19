@@ -3,7 +3,7 @@ import request from './request'
 export function getLogList(params) {
     const { deviceKey, ...otherParams } = params || {}
     return request({
-        url: '/notice/log/list',
+        url: '/log/list',
         method: 'get',
         params: otherParams
     })
@@ -11,7 +11,7 @@ export function getLogList(params) {
 
 export function countByDate(params) {
     return request({
-        url: '/notice/log/count/date',
+        url: '/log/count/date',
         method: 'get',
         params
     })
@@ -19,7 +19,7 @@ export function countByDate(params) {
 
 export function countByStatus(params) {
     return request({
-        url: '/notice/log/count/status',
+        url: '/log/count/status',
         method: 'get',
         params
     })
@@ -27,7 +27,7 @@ export function countByStatus(params) {
 
 export function countByGroup(params) {
     return request({
-        url: '/notice/log/count/group',
+        url: '/log/count/group',
         method: 'get',
         params
     })
@@ -35,7 +35,7 @@ export function countByGroup(params) {
 
 export function countByDevice(params) {
     return request({
-        url: '/notice/log/count/device',
+        url: '/log/count/device',
         method: 'get',
         params
     })
