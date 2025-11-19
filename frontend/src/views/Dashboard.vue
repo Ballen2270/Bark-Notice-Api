@@ -152,18 +152,19 @@ const totalCount = computed(() => {
 
 const successRate = computed(() => {
   if (totalCount.value === 0) return '0.0'
-  const success = dateData.value.reduce((sum, item) => sum + item.successCount, 0)
+  const success = dateData.value.reduce((sum, item) => sum + (item.successCount || 0), 0)
   return ((success / totalCount.value) * 100).toFixed(1)
 })
 
 const chartData = computed(() => {
   // Transform dateData for chart
-  // Assuming dateData is array of { date: '...', count: 10, ... }
-  // We'll take last 7 days or whatever is returned
-  return dateData.value.map(item => ({
-    label: item.date.slice(5), // MM-DD
-    count: item.count
-  }))
+  // API returns: { dateGroup: '2025-11-13', count: 28, successCount: 28, failedCount: 0 }
+  return dateData.value
+    .filter(item => item && item.dateGroup)
+    .map(item => ({
+      label: item.dateGroup.slice(5), // MM-DD
+      count: item.count || 0
+    }))
 })
 
 const maxCount = computed(() => {
