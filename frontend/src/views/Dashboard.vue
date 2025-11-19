@@ -74,14 +74,24 @@
       </div>
     </div>
 
-    <!-- Recent Activity & Charts (Placeholder for now) -->
+    <!-- Recent Activity & Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
         <h3 class="text-lg font-bold text-gray-900 mb-6">Notice Traffic</h3>
-        <div class="h-64 flex items-end justify-between gap-2">
+
+        <!-- 数据未加载或加载中时显示占位符 -->
+        <div v-if="!dataReady" class="h-64 flex items-center justify-center">
+          <div class="flex items-center gap-3 text-gray-400">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <span>Loading chart data...</span>
+          </div>
+        </div>
+
+        <!-- 数据加载完成后显示图表 -->
+        <div v-else class="h-64 flex items-end justify-between gap-2">
           <!-- Simple CSS Bar Chart -->
           <div v-for="(item, index) in chartData" :key="index" class="flex-1 flex flex-col items-center group">
-            <div 
+            <div
               class="w-full bg-blue-100 rounded-t-lg group-hover:bg-blue-200 transition-colors relative"
               :style="{ height: `${(item.count / maxCount) * 100}%` }"
             >
@@ -90,6 +100,14 @@
                </div>
             </div>
             <span class="text-xs text-gray-400 mt-2">{{ item.label }}</span>
+          </div>
+        </div>
+
+        <!-- 数据加载完成但没有数据时显示空状态 -->
+        <div v-if="dataReady && chartData.length === 0" class="h-64 flex items-center justify-center">
+          <div class="text-center text-gray-400">
+            <div class="text-4xl mb-2">📊</div>
+            <p>No data available</p>
           </div>
         </div>
       </div>
@@ -145,13 +163,16 @@ const loading = ref(false)
 const systemStatus = ref({ online: false, version: '-' })
 const deviceStats = ref({ total: 0, active: 0 })
 const dateData = ref([])
+const dataReady = ref(false) // 标记数据是否已加载完成
 
 const totalCount = computed(() => {
-  return dateData.value.reduce((sum, item) => sum + item.count, 0)
+  if (!Array.isArray(dateData.value)) return 0
+  return dateData.value.reduce((sum, item) => sum + (item.count || 0), 0)
 })
 
 const successRate = computed(() => {
   if (totalCount.value === 0) return '0.0'
+  if (!Array.isArray(dateData.value)) return '0.0'
   const success = dateData.value.reduce((sum, item) => sum + (item.successCount || 0), 0)
   return ((success / totalCount.value) * 100).toFixed(1)
 })
@@ -159,6 +180,7 @@ const successRate = computed(() => {
 const chartData = computed(() => {
   // Transform dateData for chart
   // API returns: { dateGroup: '2025-11-13', count: 28, successCount: 28, failedCount: 0 }
+  if (!Array.isArray(dateData.value)) return []
   return dateData.value
     .filter(item => item && item.dateGroup)
     .map(item => ({
@@ -168,20 +190,22 @@ const chartData = computed(() => {
 })
 
 const maxCount = computed(() => {
+  if (!Array.isArray(chartData.value)) return 10
   return Math.max(...chartData.value.map(d => d.count), 10)
 })
 
 const refreshData = async () => {
   loading.value = true
+  dataReady.value = false
   try {
     // System Status
     try {
       const res = await pingService()
       // Check for both number 200 and string '000000' codes
       const isOnline = res.code === 200 || res.code === '200' || res.success === true
-      systemStatus.value = { 
-        online: isOnline, 
-        version: res.data?.version || res.version || '1.0.0' 
+      systemStatus.value = {
+        online: isOnline,
+        version: res.data?.version || res.version || '1.0.0'
       }
     } catch {
       systemStatus.value = { online: false, version: '-' }
@@ -204,10 +228,10 @@ const refreshData = async () => {
       const today = new Date()
       const sevenDaysAgo = new Date(today)
       sevenDaysAgo.setDate(today.getDate() - 6) // Last 7 days including today
-      
+
       const endTime = today.toISOString().slice(0, 10)
       const beginTime = sevenDaysAgo.toISOString().slice(0, 10)
-      
+
       const res = await countByDate({
         dateType: 'day',
         beginTime: beginTime,
@@ -220,6 +244,8 @@ const refreshData = async () => {
       console.error(e)
     }
 
+    // 数据加载完成
+    dataReady.value = true
   } finally {
     loading.value = false
   }
