@@ -88,12 +88,12 @@
         </div>
 
         <!-- 数据加载完成后显示图表 -->
-        <div v-else class="h-64 flex items-end justify-between gap-2">
+        <div v-else class="h-64 flex justify-between gap-2">
           <!-- Simple CSS Bar Chart -->
-          <div v-for="(item, index) in chartData" :key="index" class="flex-1 flex flex-col items-center group">
+          <div v-for="(item, index) in chartData" :key="index" class="flex-1 flex flex-col justify-end items-center group h-full">
             <div
               class="w-full bg-blue-100 rounded-t-lg group-hover:bg-blue-200 transition-colors relative"
-              :style="{ height: `${(item.count / maxCount) * 100}%` }"
+              :style="{ height: `${(item.count / maxCount) * 85}%` }"
             >
                <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded transition-opacity whitespace-nowrap z-10">
                  {{ item.count }} notices
@@ -201,8 +201,8 @@ const refreshData = async () => {
     // System Status
     try {
       const res = await pingService()
-      // Check for both number 200 and string '000000' codes
-      const isOnline = res.code === 200 || res.code === '200' || res.success === true
+      // Check for number 200, string '200', and '000000' codes
+      const isOnline = res.code === 200 || res.code === '200' || res.code === '000000' || res.success === true
       systemStatus.value = {
         online: isOnline,
         version: res.data?.version || res.version || '1.0.0'
