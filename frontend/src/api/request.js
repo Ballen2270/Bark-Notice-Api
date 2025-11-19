@@ -27,7 +27,7 @@ service.interceptors.response.use(
 
         // Check custom code if applicable, or just return data
         // The original code checks for res.code !== "000000"
-        if (res.code && res.code !== "000000") {
+        if (res.code && res.code !== "000000" && res.code !== 200) {
             // Handle errors
             if (res.code === '401' || res.code === '403') {
                 localStorage.removeItem('token')
