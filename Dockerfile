@@ -1,5 +1,5 @@
 # 构建前端项目
-FROM node:18-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 # 清理缓存并重新安装依赖
