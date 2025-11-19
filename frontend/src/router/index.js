@@ -1,90 +1,58 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-const routes = [
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/Login.vue'),
-    meta: { title: '登录', noAuth: true }
-  },
-  {
-    path: '/',
-    component: () => import('../views/Layout.vue'),
-    redirect: '/dashboard',
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('../views/Dashboard.vue'),
-        meta: { title: '仪表盘', requiresAuth: true }
-      },
-      {
-        path: 'devices',
-        name: 'Devices',
-        component: () => import('../views/Devices.vue'),
-        meta: { title: '设备管理', requiresAuth: true }
-      },
-      {
-        path: 'notices',
-        name: 'Notices',
-        component: () => import('../views/Notices.vue'),
-        meta: { title: '通知管理', requiresAuth: true }
-      },
-      {
-        path: 'users',
-        name: 'Users',
-        component: () => import('../views/Users.vue'),
-        meta: { title: '用户管理', requiresAuth: true }
-      },
-      {
-        path: 'log-dashboard',
-        name: 'LogDashboard',
-        component: () => import('../views/LogDashboard.vue'),
-        meta: { title: '日志数据', requiresAuth: true }
-      },
-      {
-        path: 'log-detail',
-        name: 'LogDetail',
-        component: () => import('../views/LogDetail.vue'),
-        meta: { title: '日志详情', requiresAuth: true }
-      }
-    ]
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/login'
-  }
-]
+import Layout from '../views/Layout.vue'
+import Login from '../views/Login.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes: [
+        {
+            path: '/login',
+            name: 'login',
+            component: Login
+        },
+        {
+            path: '/',
+            component: Layout,
+            children: [
+                {
+                    path: '',
+                    name: 'dashboard',
+                    component: () => import('../views/Dashboard.vue')
+                },
+                {
+                    path: 'devices',
+                    name: 'devices',
+                    component: () => import('../views/Devices.vue')
+                },
+                {
+                    path: 'notices',
+                    name: 'notices',
+                    component: () => import('../views/Notices.vue')
+                },
+                {
+                    path: 'logs',
+                    name: 'logs',
+                    component: () => import('../views/Logs.vue')
+                },
+                {
+                    path: 'settings',
+                    name: 'settings',
+                    component: () => import('../views/Settings.vue')
+                }
+            ]
+        }
+    ]
 })
 
-// 全局前置守卫
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - Bark通知系统` : 'Bark通知系统'
-  
-  // 检查是否需要认证
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    // 检查是否已登录
     const token = localStorage.getItem('token')
-    if (!token) {
-      // 未登录则跳转登录页
-      next({
-        path: '/login',
-        query: { redirect: to.fullPath }
-      })
+    if (to.name !== 'login' && !token) {
+        next({ name: 'login' })
+    } else if (to.name === 'login' && token) {
+        next({ name: 'dashboard' })
     } else {
-      // 已登录则允许访问
-      next()
+        next()
     }
-  } else {
-    // 无需认证的页面直接访问
-    next()
-  }
 })
 
-export default router 
+export default router

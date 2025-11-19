@@ -1,1188 +1,311 @@
 <template>
-  <div class="devices-container">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <div class="header-left">
-          <h1 class="page-title">
-            <el-icon class="title-icon"><Cellphone /></el-icon>
-            设备管理
-          </h1>
-          <p class="page-subtitle">管理和配置Bark推送设备</p>
-        </div>
-        <div class="header-right">
-          <el-button @click="handleAddDevice" type="primary" size="large" class="add-btn">
-            <el-icon><Plus /></el-icon>
-            添加设备
-          </el-button>
-          <el-button @click="handleRefresh" type="success" size="large" class="refresh-btn" :loading="loading">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
-        </div>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Devices</h1>
+        <p class="text-gray-500 mt-1">Manage your registered devices</p>
       </div>
-    </div>
-
-    <!-- 统计信息 -->
-    <div class="stats-row">
-      <div class="stat-card total">
-        <div class="stat-icon">
-          <el-icon><Monitor /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ deviceStats.total }}</div>
-          <div class="stat-label">总设备数</div>
-        </div>
-      </div>
-
-      <div class="stat-card active">
-        <div class="stat-icon">
-          <el-icon><SuccessFilled /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ deviceStats.active }}</div>
-          <div class="stat-label">激活设备</div>
-        </div>
-      </div>
-
-      <div class="stat-card inactive">
-        <div class="stat-icon">
-          <el-icon><CircleCloseFilled /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ deviceStats.inactive }}</div>
-          <div class="stat-label">停用设备</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 搜索和筛选 -->
-    <div class="search-bar">
-      <div class="search-input">
-        <el-input
-          v-model="searchText"
-          placeholder="搜索设备名称、Token或Key..."
-          size="large"
-          clearable
-          @input="handleSearch"
+      <div class="flex items-center gap-3">
+        <button 
+          @click="refreshData" 
+          :disabled="loading"
+          class="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 active:scale-95"
         >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-      </div>
-      <div class="filter-controls">
-        <el-select
-          v-model="statusFilter"
-          placeholder="状态筛选"
-          size="large"
-          clearable
-          @change="handleStatusFilter"
+          <ArrowPathIcon class="w-6 h-6" :class="{ 'animate-spin': loading }" />
+        </button>
+        <button 
+          @click="handleAdd"
+          class="flex items-center px-4 py-2 bg-black text-white rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition-all shadow-lg shadow-black/10"
         >
-          <el-option label="全部状态" value="" />
-          <el-option label="激活" value="ACTIVE" />
-          <el-option label="停用" value="STOP" />
-        </el-select>
+          <PlusIcon class="w-5 h-5 mr-2" />
+          Add Device
+        </button>
       </div>
     </div>
 
-    <!-- 桌面端表格视图 -->
-    <div class="table-container desktop-only">
-      <el-table
-        v-loading="loading"
-        :data="filteredDeviceList"
-        stripe
-        class="devices-table"
-        empty-text="暂无设备数据">
-        <el-table-column prop="deviceToken" label="设备Token" min-width="200" show-overflow-tooltip>
-          <template #default="scope">
-            <div class="token-cell">
-              <el-icon class="cell-icon"><Key /></el-icon>
-              <span class="token-text">{{ scope.row.deviceToken }}</span>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="name" label="设备名称" min-width="150">
-          <template #default="scope">
-            <div class="name-cell">
-              <el-icon class="cell-icon"><Cellphone /></el-icon>
-              <span>{{ scope.row.name || '未命名设备' }}</span>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="deviceKey" label="设备Key" min-width="180" show-overflow-tooltip>
-          <template #default="scope">
-            <div class="key-cell">
-              <el-icon class="cell-icon"><Lock /></el-icon>
-              <span class="key-text">{{ scope.row.deviceKey }}</span>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="加密配置" min-width="200">
-          <template #default="scope">
-            <div class="config-cell">
-              <div class="config-item">
-                <el-icon><Setting /></el-icon>
-                <span>{{ scope.row.algorithm || 'AES' }}</span>
-              </div>
-              <div class="config-item">
-                <el-icon><Operation /></el-icon>
-                <span>{{ scope.row.model || 'CBC' }}</span>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="status" label="状态" width="120">
-          <template #default="scope">
-            <el-tag
-              :type="scope.row.status === 'ACTIVE' ? 'success' : 'danger'"
-              size="large"
-              class="status-tag"
-            >
-              <el-icon class="status-icon">
-                <component :is="scope.row.status === 'ACTIVE' ? 'SuccessFilled' : 'CircleCloseFilled'" />
-              </el-icon>
-              {{ scope.row.status === 'ACTIVE' ? '激活' : '停用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" fixed="right" width="200">
-          <template #default="scope">
-            <div class="action-buttons">
-              <el-button
-                v-if="scope.row.status === 'ACTIVE'"
-                type="danger"
-                size="small"
-                @click="handleDeactivate(scope.row)"
-                class="action-btn"
-              >
-                <el-icon><SwitchButton /></el-icon>
-                停用
-              </el-button>
-              <el-button
-                v-else
-                type="success"
-                size="small"
-                @click="handleActivate(scope.row)"
-                class="action-btn"
-              >
-                <el-icon><Check /></el-icon>
-                激活
-              </el-button>
-              <el-button
-                type="primary"
-                size="small"
-                @click="handleEdit(scope.row)"
-                class="action-btn"
-              >
-                <el-icon><Edit /></el-icon>
-                编辑
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Total Devices</p>
+          <h3 class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total }}</h3>
+        </div>
+        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+          <DevicePhoneMobileIcon class="w-6 h-6" />
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Active</p>
+          <h3 class="text-2xl font-bold text-gray-900 mt-1">{{ stats.active }}</h3>
+        </div>
+        <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600">
+          <CheckCircleIcon class="w-6 h-6" />
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Inactive</p>
+          <h3 class="text-2xl font-bold text-gray-900 mt-1">{{ stats.inactive }}</h3>
+        </div>
+        <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
+          <XCircleIcon class="w-6 h-6" />
+        </div>
+      </div>
     </div>
 
-    <!-- 移动端卡片视图 -->
-    <div class="mobile-devices-list mobile-only">
-      <div v-if="loading" class="mobile-loading">
-        <el-skeleton :rows="3" animated />
-      </div>
-      <div v-else-if="filteredDeviceList.length === 0" class="empty-state">
-        <el-empty description="暂无设备数据" />
-      </div>
-      <div v-else class="device-cards">
-        <div
-          v-for="device in filteredDeviceList"
-          :key="device.deviceToken"
-          class="device-card"
-          :class="{ 'inactive': device.status !== 'ACTIVE' }"
+    <!-- Search & Filter -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4">
+      <div class="relative flex-1">
+        <MagnifyingGlassIcon class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input 
+          v-model="searchQuery"
+          type="text" 
+          placeholder="Search devices..." 
+          class="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
         >
-          <div class="card-header">
-            <div class="device-info">
-              <div class="device-name">
-                <el-icon class="device-icon"><Cellphone /></el-icon>
-                <span>{{ device.name || '未命名设备' }}</span>
-              </div>
-              <el-tag
-                :type="device.status === 'ACTIVE' ? 'success' : 'danger'"
-                size="small"
-                class="mobile-status-tag"
-              >
-                {{ device.status === 'ACTIVE' ? '激活' : '停用' }}
-              </el-tag>
+      </div>
+      <select 
+        v-model="statusFilter"
+        class="px-4 py-2 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+      >
+        <option value="">All Status</option>
+        <option value="ACTIVE">Active</option>
+        <option value="STOP">Inactive</option>
+      </select>
+    </div>
+
+    <!-- Device List -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device Name</th>
+              <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Token</th>
+              <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr v-if="filteredDevices.length === 0">
+              <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                No devices found
+              </td>
+            </tr>
+            <tr v-for="device in filteredDevices" :key="device.deviceToken" class="hover:bg-gray-50/50 transition-colors group">
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mr-3 text-gray-500">
+                    <DevicePhoneMobileIcon class="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-900">{{ device.name || 'Unnamed Device' }}</p>
+                    <p class="text-xs text-gray-500">{{ device.algorithm }} / {{ device.model }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <code class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 font-mono">{{ device.deviceToken }}</code>
+              </td>
+              <td class="px-6 py-4">
+                <span 
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="device.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="device.status === 'ACTIVE' ? 'bg-green-500' : 'bg-red-500'"></span>
+                  {{ device.status === 'ACTIVE' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    @click="handleEdit(device)"
+                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <PencilIcon class="w-4 h-4" />
+                  </button>
+                  <button 
+                    v-if="device.status === 'ACTIVE'"
+                    @click="toggleStatus(device)"
+                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Deactivate"
+                  >
+                    <StopIcon class="w-4 h-4" />
+                  </button>
+                  <button 
+                    v-else
+                    @click="toggleStatus(device)"
+                    class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    title="Activate"
+                  >
+                    <PlayIcon class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" @click="showModal = false"></div>
+      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+          <h3 class="text-lg font-bold text-gray-900">{{ isEdit ? 'Edit Device' : 'Add Device' }}</h3>
+          <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
+            <XMarkIcon class="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Device Token</label>
+            <input v-model="form.deviceToken" :disabled="isEdit" type="text" class="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all disabled:opacity-50">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Device Name</label>
+            <input v-model="form.name" type="text" class="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Device Key</label>
+            <input v-model="form.deviceKey" type="text" class="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+              <input v-model="form.algorithm" placeholder="AES" type="text" class="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+              <input v-model="form.model" placeholder="CBC" type="text" class="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
             </div>
           </div>
+        </div>
 
-          <div class="card-content">
-            <div class="info-row">
-              <div class="info-item">
-                <span class="info-label">Token:</span>
-                <span class="info-value">{{ device.deviceToken }}</span>
-              </div>
-            </div>
-
-            <div class="info-row">
-              <div class="info-item">
-                <span class="info-label">Key:</span>
-                <span class="info-value">{{ device.deviceKey }}</span>
-              </div>
-            </div>
-
-            <div class="info-row">
-              <div class="info-item">
-                <span class="info-label">算法:</span>
-                <span class="info-value">{{ device.algorithm || 'AES' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">模式:</span>
-                <span class="info-value">{{ device.model || 'CBC' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-actions">
-            <el-button
-              v-if="device.status === 'ACTIVE'"
-              type="danger"
-              size="small"
-              @click="handleDeactivate(device)"
-              class="mobile-action-btn"
-            >
-              <el-icon><SwitchButton /></el-icon>
-              停用
-            </el-button>
-            <el-button
-              v-else
-              type="success"
-              size="small"
-              @click="handleActivate(device)"
-              class="mobile-action-btn"
-            >
-              <el-icon><Check /></el-icon>
-              激活
-            </el-button>
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEdit(device)"
-              class="mobile-action-btn"
-            >
-              <el-icon><Edit /></el-icon>
-              编辑
-            </el-button>
-          </div>
+        <div class="p-6 bg-gray-50 flex justify-end gap-3">
+          <button @click="showModal = false" class="px-4 py-2 text-gray-600 font-medium hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
+          <button @click="handleSubmit" class="px-4 py-2 bg-black text-white font-medium rounded-xl hover:bg-gray-800 transition-colors shadow-lg shadow-black/10">Save Device</button>
         </div>
       </div>
     </div>
-    
-    <!-- 添加/编辑设备对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑设备' : '添加设备'"
-      width="500px">
-      <el-form 
-        ref="deviceFormRef"
-        :model="deviceForm"
-        :rules="rules"
-        label-width="100px">
-        <el-form-item label="设备Token" prop="deviceToken">
-          <el-input v-model="deviceForm.deviceToken" :disabled="isEdit" />
-        </el-form-item>
-        <el-form-item label="设备名称" prop="name">
-          <el-input v-model="deviceForm.name" />
-        </el-form-item>
-        <el-form-item label="设备Key" prop="deviceKey">
-          <el-input v-model="deviceForm.deviceKey" />
-        </el-form-item>
-        <el-form-item label="算法" prop="algorithm">
-          <el-input v-model="deviceForm.algorithm" placeholder="默认: AES" />
-        </el-form-item>
-        <el-form-item label="模式" prop="model">
-          <el-input v-model="deviceForm.model" placeholder="默认: CBC" />
-        </el-form-item>
-        <el-form-item label="填充" prop="padding">
-          <el-input v-model="deviceForm.padding" placeholder="默认: PKCS7Padding" />
-        </el-form-item>
-        <el-form-item label="编码Key" prop="encodeKey">
-          <el-input v-model="deviceForm.encodeKey" placeholder="留空自动生成" />
-        </el-form-item>
-        <el-form-item label="IV" prop="iv">
-          <el-input v-model="deviceForm.iv" placeholder="留空自动生成" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm">确认</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
-import {
-  getAllDevices,
-  saveDevice,
-  activateDevice,
-  deactivateDevice
-} from '@/api/device'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Cellphone,
-  Plus,
-  Refresh,
-  Monitor,
-  SuccessFilled,
-  CircleCloseFilled,
-  Search,
-  Key,
-  Lock,
-  Setting,
-  Operation,
-  SwitchButton,
-  Check,
-  Edit
-} from '@element-plus/icons-vue'
+import { ref, computed, onMounted, reactive } from 'vue'
+import { 
+  DevicePhoneMobileIcon, 
+  PlusIcon, 
+  ArrowPathIcon, 
+  MagnifyingGlassIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  PencilIcon,
+  StopIcon,
+  PlayIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
+import { getAllDevices, saveDevice, activateDevice, deactivateDevice } from '../api/device'
 
 const loading = ref(false)
-const deviceList = ref([])
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const deviceFormRef = ref(null)
-
-// 搜索和筛选状态
-const searchText = ref('')
+const devices = ref([])
+const searchQuery = ref('')
 const statusFilter = ref('')
+const showModal = ref(false)
+const isEdit = ref(false)
 
-// 设备统计
-const deviceStats = computed(() => {
-  const stats = {
-    total: deviceList.value.length,
-    active: deviceList.value.filter(d => d.status === 'ACTIVE').length,
-    inactive: deviceList.value.filter(d => d.status !== 'ACTIVE').length
-  }
-  return stats
-})
-
-// 过滤后的设备列表
-const filteredDeviceList = computed(() => {
-  let filtered = deviceList.value
-
-  // 按状态筛选
-  if (statusFilter.value) {
-    filtered = filtered.filter(device => device.status === statusFilter.value)
-  }
-
-  // 按搜索文本筛选
-  if (searchText.value) {
-    const searchLower = searchText.value.toLowerCase()
-    filtered = filtered.filter(device =>
-      (device.name && device.name.toLowerCase().includes(searchLower)) ||
-      (device.deviceToken && device.deviceToken.toLowerCase().includes(searchLower)) ||
-      (device.deviceKey && device.deviceKey.toLowerCase().includes(searchLower)) ||
-      (device.algorithm && device.algorithm.toLowerCase().includes(searchLower)) ||
-      (device.model && device.model.toLowerCase().includes(searchLower))
-    )
-  }
-
-  return filtered
-})
-
-const deviceForm = reactive({
+const form = reactive({
   deviceToken: '',
   name: '',
   deviceKey: '',
-  algorithm: '',
-  model: '',
-  padding: '',
+  algorithm: 'AES',
+  model: 'CBC',
+  padding: 'PKCS7Padding',
   encodeKey: '',
   iv: ''
 })
 
-const rules = {
-  deviceToken: [
-    { required: true, message: '请输入设备Token', trigger: 'blur' }
-  ],
-  name: [
-    { required: true, message: '请输入设备名称', trigger: 'blur' }
-  ],
-  deviceKey: [
-    { required: true, message: '请输入设备Key', trigger: 'blur' }
-  ]
-}
+const stats = computed(() => ({
+  total: devices.value.length,
+  active: devices.value.filter(d => d.status === 'ACTIVE').length,
+  inactive: devices.value.filter(d => d.status !== 'ACTIVE').length
+}))
 
-// 获取所有设备
-const fetchDevices = async () => {
+const filteredDevices = computed(() => {
+  return devices.value.filter(device => {
+    const matchesSearch = (device.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+                          device.deviceToken?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    const matchesStatus = !statusFilter.value || device.status === statusFilter.value
+    return matchesSearch && matchesStatus
+  })
+})
+
+const refreshData = async () => {
   loading.value = true
   try {
     const res = await getAllDevices()
-    // 检查返回数据结构，适应不同的API响应格式
-    if (res.data !== undefined) {
-      deviceList.value = res.data || []
-    } else if (Array.isArray(res)) {
-      // 如果直接返回数组数据
-      deviceList.value = res
-    } else {
-      // 如果是其他未知结构
-      deviceList.value = []
-      console.warn('未知的API响应格式:', res)
-    }
-  } catch (error) {
-    console.error('获取设备列表失败', error)
-    // 显示更具体的错误信息
-    ElMessage.error(`获取设备列表失败: ${error.message || '未知错误'}`)
-    deviceList.value = [] // 确保列表不是undefined
+    devices.value = res.data || []
+  } catch (e) {
+    console.error(e)
   } finally {
     loading.value = false
   }
 }
 
-// 添加设备
-const handleAddDevice = () => {
+const handleAdd = () => {
   isEdit.value = false
-  resetForm()
-  dialogVisible.value = true
+  Object.assign(form, {
+    deviceToken: '',
+    name: '',
+    deviceKey: '',
+    algorithm: 'AES',
+    model: 'CBC',
+    padding: 'PKCS7Padding',
+    encodeKey: '',
+    iv: ''
+  })
+  showModal.value = true
 }
 
-// 编辑设备
-const handleEdit = (row) => {
+const handleEdit = (device) => {
   isEdit.value = true
-  resetForm()
-  Object.keys(deviceForm).forEach(key => {
-    if (key in row) {
-      deviceForm[key] = row[key]
-    }
-  })
-  dialogVisible.value = true
+  Object.assign(form, device)
+  showModal.value = true
 }
 
-// 激活设备
-const handleActivate = async (row) => {
+const handleSubmit = async () => {
   try {
-    await activateDevice(row.deviceToken)
-    ElMessage.success('设备激活成功')
-    fetchDevices()
-  } catch (error) {
-    console.error('设备激活失败', error)
-    ElMessage.error('设备激活失败')
+    await saveDevice(form)
+    showModal.value = false
+    refreshData()
+  } catch (e) {
+    console.error(e)
+    alert('Failed to save device')
   }
 }
 
-// 停用设备
-const handleDeactivate = async (row) => {
-  try {
-    await ElMessageBox.confirm('确定要停用该设备吗?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    await deactivateDevice(row.deviceToken)
-    ElMessage.success('设备停用成功')
-    fetchDevices()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('设备停用失败', error)
-      ElMessage.error('设备停用失败')
-    }
-  }
-}
-
-// 搜索处理
-const handleSearch = () => {
-  // 搜索功能由computed属性自动处理
-}
-
-// 状态筛选处理
-const handleStatusFilter = () => {
-  // 筛选功能由computed属性自动处理
-}
-
-// 刷新设备列表
-const handleRefresh = () => {
-  fetchDevices()
-}
-
-// 重置表单
-const resetForm = () => {
-  if (deviceFormRef.value) {
-    deviceFormRef.value.resetFields()
-  }
-  Object.keys(deviceForm).forEach(key => {
-    deviceForm[key] = ''
-  })
-}
-
-// 提交表单
-const submitForm = async () => {
-  if (!deviceFormRef.value) return
+const toggleStatus = async (device) => {
+  if (!confirm(`Are you sure you want to ${device.status === 'ACTIVE' ? 'deactivate' : 'activate'} this device?`)) return
   
-  await deviceFormRef.value.validate(async (valid) => {
-    if (valid) {
-      try {
-        await saveDevice(deviceForm)
-        ElMessage.success(isEdit.value ? '设备更新成功' : '设备添加成功')
-        dialogVisible.value = false
-        fetchDevices()
-      } catch (error) {
-        console.error(isEdit.value ? '设备更新失败' : '设备添加失败', error)
-        ElMessage.error(isEdit.value ? '设备更新失败' : '设备添加失败')
-      }
+  try {
+    if (device.status === 'ACTIVE') {
+      await deactivateDevice(device.deviceToken)
+    } else {
+      await activateDevice(device.deviceToken)
     }
-  })
+    refreshData()
+  } catch (e) {
+    console.error(e)
+    alert('Failed to update status')
+  }
 }
 
 onMounted(() => {
-  fetchDevices()
+  refreshData()
 })
 </script>
-
-<style scoped>
-.devices-container {
-  padding: 0;
-  min-height: 100vh;
-  background: var(--bg-secondary);
-}
-
-/* 页面头部 */
-.page-header {
-  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(255, 255, 255, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-large);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-  box-shadow: var(--shadow-medium);
-  border: 1px solid var(--border-light);
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-}
-
-.header-left {
-  flex: 1;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  margin: 0 0 var(--spacing-xs) 0;
-  color: var(--text-primary);
-  background: linear-gradient(135deg, var(--primary-color) 0%, #0056d6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.title-icon {
-  font-size: 32px;
-  color: var(--primary-color);
-}
-
-.page-subtitle {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--font-size-md);
-  font-weight: 400;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.add-btn,
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-weight: 500;
-}
-
-/* 统计信息 */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
-}
-
-.stat-card {
-  background: var(--bg-primary);
-  border-radius: var(--radius-large);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-light);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-medium);
-}
-
-.stat-card:hover::before {
-  opacity: 1;
-}
-
-.stat-card.total::before {
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(0, 122, 255, 0.02) 100%);
-}
-
-.stat-card.active::before {
-  background: linear-gradient(135deg, rgba(52, 199, 89, 0.05) 0%, rgba(52, 199, 89, 0.02) 100%);
-}
-
-.stat-card.inactive::before {
-  background: linear-gradient(135deg, rgba(255, 59, 48, 0.05) 0%, rgba(255, 59, 48, 0.02) 100%);
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-medium);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-card.total .stat-icon {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #0056d6 100%);
-  color: white;
-}
-
-.stat-card.active .stat-icon {
-  background: linear-gradient(135deg, var(--success-color) 0%, #28a745 100%);
-  color: white;
-}
-
-.stat-card.inactive .stat-icon {
-  background: linear-gradient(135deg, var(--danger-color) 0%, #dc3545 100%);
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* 搜索和筛选 */
-.search-bar {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-  background: var(--bg-primary);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-large);
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-light);
-}
-
-.search-input {
-  flex: 1;
-}
-
-.filter-controls {
-  min-width: 180px;
-}
-
-/* 桌面端表格 */
-.table-container {
-  background: var(--bg-primary);
-  border-radius: var(--radius-large);
-  overflow: hidden;
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-light);
-}
-
-.devices-table {
-  width: 100%;
-}
-
-.devices-table :deep(.el-table__header-wrapper) {
-  background: var(--bg-secondary);
-}
-
-.devices-table :deep(.el-table__header) {
-  th {
-    background: var(--bg-secondary) !important;
-    color: var(--text-secondary) !important;
-    font-weight: 600 !important;
-    border-bottom: 1px solid var(--border-light) !important;
-  }
-}
-
-.devices-table :deep(.el-table__row) {
-  td {
-    border-bottom: 1px solid var(--border-light) !important;
-    padding: var(--spacing-md) !important;
-  }
-}
-
-.devices-table :deep(.el-table__row:hover) {
-  background: var(--bg-secondary) !important;
-}
-
-.token-cell,
-.name-cell,
-.key-cell {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.cell-icon {
-  color: var(--text-secondary);
-  font-size: 16px;
-}
-
-.token-text,
-.key-text {
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-  font-size: var(--font-size-sm);
-}
-
-.config-cell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.config-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-}
-
-.config-item .el-icon {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.status-tag {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.status-icon {
-  font-size: 14px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  white-space: nowrap;
-}
-
-/* 移动端卡片视图 */
-.mobile-devices-list {
-  background: var(--bg-primary);
-  border-radius: var(--radius-large);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-light);
-}
-
-.mobile-loading {
-  padding: var(--spacing-lg);
-}
-
-.empty-state {
-  padding: var(--spacing-xl);
-  text-align: center;
-}
-
-.device-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.device-card {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-medium);
-  padding: var(--spacing-md);
-  border: 1px solid var(--border-light);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.device-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--success-color);
-  transition: all 0.2s;
-}
-
-.device-card.inactive::before {
-  background: var(--danger-color);
-}
-
-.device-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
-}
-
-.card-header {
-  margin-bottom: var(--spacing-md);
-}
-
-.device-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
-
-.device-name {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.device-icon {
-  color: var(--primary-color);
-  font-size: 18px;
-}
-
-.mobile-status-tag {
-  font-size: var(--font-size-xs);
-}
-
-.card-content {
-  margin-bottom: var(--spacing-md);
-}
-
-.info-row {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-}
-
-.info-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.info-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-value {
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.card-actions {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.mobile-action-btn {
-  flex: 1;
-  min-width: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-}
-
-/* 对话框优化 */
-.el-dialog {
-  border-radius: var(--radius-large) !important;
-  overflow: hidden !important;
-}
-
-.el-dialog__header {
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%) !important;
-  padding: var(--spacing-lg) !important;
-  border-bottom: 1px solid var(--border-light) !important;
-}
-
-.el-dialog__title {
-  font-size: var(--font-size-lg) !important;
-  font-weight: 600 !important;
-  color: var(--text-primary) !important;
-}
-
-.el-dialog__body {
-  padding: var(--spacing-lg) !important;
-}
-
-.dialog-footer {
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg) !important;
-  border-top: 1px solid var(--border-light) !important;
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-sm);
-}
-
-/* 响应式适配 */
-@media (max-width: 767px) {
-  .devices-container {
-    padding: var(--spacing-md);
-  }
-
-  .page-header {
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-    text-align: center;
-  }
-
-  .header-left {
-    text-align: center;
-  }
-
-  .page-title {
-    font-size: var(--font-size-lg);
-    justify-content: center;
-  }
-
-  .title-icon {
-    font-size: 24px;
-  }
-
-  .page-subtitle {
-    text-align: center;
-    font-size: var(--font-size-sm);
-  }
-
-  .header-right {
-    justify-content: center;
-    gap: var(--spacing-sm);
-  }
-
-  .add-btn,
-  .refresh-btn {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-
-  .stats-row {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
-
-  .stat-card {
-    padding: var(--spacing-md);
-    gap: var(--spacing-sm);
-  }
-
-  .stat-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .stat-value {
-    font-size: 24px;
-  }
-
-  .stat-label {
-    font-size: var(--font-size-xs);
-  }
-
-  .search-bar {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-  }
-
-  .filter-controls {
-    min-width: auto;
-    width: 100%;
-  }
-
-  .desktop-only {
-    display: none !important;
-  }
-
-  .mobile-only {
-    display: block !important;
-  }
-
-  .mobile-devices-list {
-    padding: var(--spacing-sm);
-  }
-
-  .device-card {
-    padding: var(--spacing-sm);
-  }
-
-  .info-row {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-
-  .card-actions {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-  }
-
-  .mobile-action-btn {
-    min-width: auto;
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-}
-
-@media (max-width: 480px) {
-  .devices-container {
-    padding: var(--spacing-sm);
-  }
-
-  .page-header {
-    padding: var(--spacing-md);
-  }
-
-  .stats-row {
-    gap: var(--spacing-sm);
-  }
-
-  .search-bar {
-    padding: var(--spacing-sm);
-  }
-
-  .device-card {
-    padding: var(--spacing-xs);
-  }
-
-  .device-name {
-    font-size: var(--font-size-sm);
-  }
-}
-
-/* 显示控制 */
-.desktop-only {
-  display: block;
-}
-
-.mobile-only {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .desktop-only {
-    display: none !important;
-  }
-
-  .mobile-only {
-    display: block !important;
-  }
-}
-
-/* 触摸设备优化 */
-@media (hover: none) and (pointer: coarse) {
-  .action-btn,
-  .mobile-action-btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  .stat-card:hover {
-    transform: none;
-  }
-
-  .device-card:hover {
-    transform: none;
-  }
-}
-
-/* 减少动画模式 */
-@media (prefers-reduced-motion: reduce) {
-  .stat-card,
-  .device-card,
-  .action-btn,
-  .mobile-action-btn {
-    transition: none !important;
-  }
-
-  .stat-card:hover,
-  .device-card:hover {
-    transform: none !important;
-  }
-}
-</style> 
