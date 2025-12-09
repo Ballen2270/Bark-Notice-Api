@@ -5,7 +5,6 @@ import com.bark.dto.ApiParam;
 import com.bark.dto.jellyfin.JellyFinWebhookParam;
 import com.bark.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +20,6 @@ import java.text.MessageFormat;
 @RequestMapping("/jellyfin")
 @RestController
 public class JellyfinController {
-
-    @Autowired
-    NotifyService notifyService;
-
     private final static String ITEM_ADDED = "ItemAdded";
     private final static String PLAYBACK_START = "PlaybackStart";
     private final static String PLAYBACK_STOP = "PlaybackStop";
@@ -41,6 +36,12 @@ public class JellyfinController {
     private final static String PLAYBACK_STOP_KEY = "暂停";
     private final static String ITEM_TYPE_EPISODE = "Episode";
     private final static String ITEM_TYPE_MOVIE = "Movie";
+
+    private final NotifyService notifyService;
+
+    public JellyfinController(NotifyService notifyService) {
+        this.notifyService = notifyService;
+    }
 
 
     @PostMapping("notice")

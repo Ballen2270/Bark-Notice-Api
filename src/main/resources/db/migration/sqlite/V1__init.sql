@@ -1,0 +1,49 @@
+-- SQLite 版本建表脚本
+
+-- 创建表：device_conf
+CREATE TABLE IF NOT EXISTS device_conf (
+    device_token VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(80) DEFAULT NULL,
+    device_key VARCHAR(64) DEFAULT NULL,
+    algorithm VARCHAR(16) DEFAULT NULL,
+    model VARCHAR(8) DEFAULT NULL,
+    padding VARCHAR(16) DEFAULT NULL,
+    encode_key VARCHAR(40) DEFAULT NULL,
+    iv VARCHAR(20) DEFAULT NULL,
+    status VARCHAR(16) DEFAULT NULL,
+    rec_create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    rec_update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建表：notice_log
+CREATE TABLE IF NOT EXISTS notice_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_key VARCHAR(64) DEFAULT NULL,
+    url VARCHAR(255) DEFAULT NULL,
+    title VARCHAR(100) DEFAULT NULL,
+    body VARCHAR(1000) DEFAULT NULL,
+    group_name VARCHAR(20) DEFAULT NULL,
+    result VARCHAR(1000) DEFAULT NULL,
+    status VARCHAR(16) DEFAULT NULL,
+    rec_create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    rec_update_time DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建表：sys_user
+CREATE TABLE IF NOT EXISTS sys_user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    real_name VARCHAR(50) DEFAULT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
+    last_login_time DATETIME DEFAULT NULL,
+    last_login_ip VARCHAR(50) DEFAULT NULL,
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_notice_log_device_key ON notice_log(device_key);
+CREATE INDEX IF NOT EXISTS idx_sys_user_username ON sys_user(username);

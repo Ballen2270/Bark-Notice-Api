@@ -2,9 +2,9 @@ package com.bark.web.controller;
 
 import com.bark.core.BasicResponse;
 import com.bark.domain.User;
+import com.bark.dto.CheckInitRes;
 import com.bark.service.UserService;
 import com.bark.utils.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,22 +13,27 @@ import java.util.Map;
 
 /**
  * 认证控制器
+ * 
+ * @author ballen
  */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
+
+    public AuthController(UserService userService, JwtUtils jwtUtils) {
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
+    }
 
     /**
      * 检查系统是否已初始化
      */
     @GetMapping("/checkInit")
-    public BasicResponse chekInit() {
+    public BasicResponse<CheckInitRes> chekInit() {
         return BasicResponse.successToClient("检查初始化请求成功", userService.checkInit());
     }
 
@@ -47,7 +52,12 @@ public class AuthController {
         }
 
         User registeredUser = userService.register(user);
-        return BasicResponse.successToClient("初始化注册成功", registeredUser);
+        String token = jwtUtils.generateToken(registeredUser.getId(), user.getUsername());
+        // 返回用户信息和令牌
+        Map<String, Object> data = new HashMap<>();
+        data.put("userInfo", user);
+        data.put("token", token);
+        return BasicResponse.successToClient("初始化注册成功", data);
     }
 
     /**
@@ -64,23 +74,23 @@ public class AuthController {
         String captcha = params.get("captcha");
         String captchaKey = params.get("captchaKey");
 
-            if (username == null || password == null || captcha == null || captchaKey == null) {
-                return BasicResponse.errorToClient("参数不完整", null);
-            }
+        if (username == null || password == null || captcha == null || captchaKey == null) {
+            return BasicResponse.errorToClient("参数不完整", null);
+        }
 
-            // 获取客户端IP
-            String ip = getClientIp(request);
+        // 获取客户端IP
+        String ip = getClientIp(request);
 
-            // 登录验证
-            User user = userService.login(username, password, captcha, captchaKey, ip);
+        // 登录验证
+        User user = userService.login(username, password, captcha, captchaKey, ip);
 
-            // 生成JWT令牌
-            String token = jwtUtils.generateToken(user.getId(), user.getUsername());
+        // 生成JWT令牌
+        String token = jwtUtils.generateToken(user.getId(), user.getUsername());
 
-            // 返回用户信息和令牌
-            Map<String, Object> data = new HashMap<>();
-            data.put("userInfo", user);
-            data.put("token", token);
+        // 返回用户信息和令牌
+        Map<String, Object> data = new HashMap<>();
+        data.put("userInfo", user);
+        data.put("token", token);
 
         return BasicResponse.successToClient("登录成功", data);
     }
@@ -115,18 +125,16 @@ public class AuthController {
             return BasicResponse.errorToClient("未授权", null);
         }
 
-            Long userId = jwtUtils.getUserIdFromToken(token);
-            String oldPassword = params.get("oldPassword");
-            String newPassword = params.get("newPassword");
+        Long userId = jwtUtils.getUserIdFromToken(token);
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
 
-            if (oldPassword == null || newPassword == null) {
-                return BasicResponse.errorToClient("密码参数不完整", null);
-            }
+        if (oldPassword == null || newPassword == null) {
+            return BasicResponse.errorToClient("密码参数不完整", null);
+        }
 
         boolean result = userService.changePassword(userId, oldPassword, newPassword);
-        return result ? 
-            BasicResponse.successToClient("密码修改成功", null) : 
-            BasicResponse.errorToClient( "密码修改失败", null);
+        return result ? BasicResponse.successToClient("密码修改成功", null) : BasicResponse.errorToClient("密码修改失败", null);
     }
 
     /**
@@ -142,8 +150,8 @@ public class AuthController {
             return BasicResponse.errorToClient("未授权", null);
         }
 
-            Long userId = jwtUtils.getUserIdFromToken(token);
-            User user = userService.getUserById(userId);
+        Long userId = jwtUtils.getUserIdFromToken(token);
+        User user = userService.getUserById(userId);
 
         return BasicResponse.successToClient("获取用户信息成功", user);
     }

@@ -7,6 +7,13 @@ spring:
   application:
     name: notice-api
 
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:${SQLITE_DB_PATH:./data/notice-api.db}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
@@ -27,3 +34,5 @@ logging:
 jwt:
   secret: barkSecretKey
   expiration: 86400 # 1天
+
+#debug: true

@@ -4,7 +4,6 @@ import com.bark.core.BasicResponse;
 import com.bark.domain.NoticeLog;
 import com.bark.service.NoticeLogService;
 import com.github.pagehelper.PageInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,13 +12,17 @@ import java.util.HashMap;
 
 /**
  * 通知日志控制器
+ * @author ballen
  */
 @RestController
 @RequestMapping("/log/")
 public class NoticeLogController {
 
-    @Autowired
-    private NoticeLogService noticeLogService;
+    private final NoticeLogService noticeLogService;
+
+    public NoticeLogController(NoticeLogService noticeLogService) {
+        this.noticeLogService = noticeLogService;
+    }
 
     /**
      * 按条件查询通知日志（分页）

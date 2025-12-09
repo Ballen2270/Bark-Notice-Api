@@ -27,8 +27,11 @@ public class DeviceController {
     public final static String DEFAULT_ALGORITHM = "AES";
     public final static String DEFAULT_MODEL = "CBC";
     public final static String DEFAULT_PADDING = "PKCS7Padding";
-    @Resource
-    DeviceConfMapper deviceConfMapper;
+
+    private  final DeviceConfMapper deviceConfMapper;
+    public DeviceController(DeviceConfMapper deviceConfMapper) {
+        this.deviceConfMapper = deviceConfMapper;
+    }
 
     @GetMapping("query")
     private BasicResponse query(@RequestParam String deviceToken){

@@ -6,7 +6,6 @@ import com.bark.dto.StatusRes;
 import com.bark.mapper.DeviceConfMapper;
 import com.bark.properties.ApiUrlProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -29,13 +28,17 @@ public class StatusController {
     public static final String URL_PATH_SEPARATOR = "/";
 
     @Autowired
-    DeviceConfMapper deviceConfMapper;
+    private final DeviceConfMapper deviceConfMapper;
 
-    @Autowired
-    RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
-    ApiUrlProperties apiUrlProperties;
+    private final ApiUrlProperties apiUrlProperties;
+
+    public StatusController(DeviceConfMapper deviceConfMapper, RestTemplate restTemplate, ApiUrlProperties apiUrlProperties) {
+        this.deviceConfMapper = deviceConfMapper;
+        this.restTemplate = restTemplate;
+        this.apiUrlProperties = apiUrlProperties;
+    }
 
     /**
      * 获取所有用户
