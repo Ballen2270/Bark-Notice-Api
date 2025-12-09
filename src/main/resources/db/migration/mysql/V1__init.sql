@@ -47,7 +47,3 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
-
--- 创建索引
-CREATE INDEX IF NOT EXISTS idx_notice_log_device_key ON notice_log(device_key);
-CREATE INDEX IF NOT EXISTS idx_sys_user_username ON sys_user(username);

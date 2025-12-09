@@ -44,6 +44,14 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('token')
             localStorage.removeItem('userInfo')
             // Router push to login handled in component or interceptor
+        },
+        setToken(token) {
+            this.token = token
+            localStorage.setItem('token', token)
+        },
+        setUserInfo(userInfo) {
+            this.userInfo = userInfo
+            localStorage.setItem('userInfo', JSON.stringify(userInfo))
         }
     }
 })
