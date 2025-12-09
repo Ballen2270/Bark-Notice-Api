@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '../views/Layout.vue'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,6 +10,11 @@ const router = createRouter({
             path: '/login',
             name: 'login',
             component: Login
+        },
+        {
+            path: '/register',
+            name: 'register',
+            component: Register
         },
         {
             path: '/',
@@ -46,9 +52,9 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token')
-    if (to.name !== 'login' && !token) {
+    if (to.name !== 'login' && to.name !== 'register' && !token) {
         next({ name: 'login' })
-    } else if (to.name === 'login' && token) {
+    } else if ((to.name === 'login' || to.name === 'register') && token) {
         next({ name: 'dashboard' })
     } else {
         next()

@@ -30,3 +30,18 @@ export function changePassword(data) {
         data
     })
 }
+
+export function checkInit() {
+    return request({
+        url: '/auth/checkInit',
+        method: 'get'
+    })
+}
+
+export function initRegister(data) {
+    return request({
+        url: '/auth/initRegister',
+        method: 'post',
+        data
+    })
+}

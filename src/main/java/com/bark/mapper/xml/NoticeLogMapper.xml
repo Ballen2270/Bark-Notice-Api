@@ -21,11 +21,11 @@
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into notice_log (device_key, url, title, 
-      body, `group`, `result`, 
+    insert into notice_log (device_key, url, title,
+      body, `group`, `result`,
       `status`)
-    values (#{deviceKey,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, 
-      #{body,jdbcType=VARCHAR}, #{group,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, 
+    values (#{deviceKey,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR},
+      #{body,jdbcType=VARCHAR}, #{group,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR},
       #{status,jdbcType=VARCHAR})
   </insert>
   <update id="updateByPrimaryKey" parameterType="com.bark.domain.NoticeLog" >
@@ -74,7 +74,7 @@
   
   <!-- 按日期统计通知数量 -->
   <select id="countByDate" resultType="java.util.Map">
-    select 
+    select
     <choose>
       <when test="dateType == 'year'">
         DATE_FORMAT(rec_create_time, '%Y') as dateGroup,
