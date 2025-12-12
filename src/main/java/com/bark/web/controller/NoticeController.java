@@ -8,8 +8,10 @@ import com.bark.properties.ApiUrlProperties;
 import com.bark.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+
 import javax.validation.Valid;
 
 /**
@@ -18,6 +20,7 @@ import javax.validation.Valid;
 @Slf4j
 @RequestMapping("/")
 @RestController
+@Validated
 public class NoticeController {
 
     public static final String REGISTER_PRE = "/register?devicetoken=";
@@ -41,12 +44,12 @@ public class NoticeController {
     }
 
     @GetMapping("ping")
-    private PingResponse ping() {
+    public PingResponse ping() {
         return restTemplate.getForObject(apiUrlProperties.getUrl() + URL_PATH_SEPARATOR + PING, PingResponse.class);
     }
 
     @GetMapping("register")
-    private RegisterResponse register(@RequestParam String devicetoken, @RequestParam String key) {
+    public RegisterResponse register(@RequestParam String devicetoken, @RequestParam String key) {
         String registerUrl = genRegisterUrl(devicetoken, key);
         RegisterResponse res = restTemplate.getForObject(registerUrl, RegisterResponse.class);
         if (res == null || !API_SUCCESS.equals(res.getCode())) {
@@ -76,19 +79,19 @@ public class NoticeController {
     }
 
     @GetMapping("notice")
-    private BasicResponse notice(@RequestParam String title, @RequestParam String body,
+    public BasicResponse notice(@RequestParam String title, @RequestParam String body,
             @RequestParam(required = false) String group) {
         return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group, null)));
     }
 
     @GetMapping("notice/{title}/{body}")
-    private BasicResponse noticePathVariable(@PathVariable("title") String title, @PathVariable("body") String body,
+    public BasicResponse noticePathVariable(@PathVariable("title") String title, @PathVariable("body") String body,
             @RequestParam(required = false) String group) {
         return BasicResponse.successToClient("发送成功", notifyService.noticeAll(new ApiParam(title, body, group, null)));
     }
 
     @PostMapping("notice")
-    private BasicResponse notice(@Valid @RequestBody ApiParam param) {
+    public BasicResponse notice(@Valid @RequestBody ApiParam param) {
         return BasicResponse.successToClient("发送成功", notifyService.noticeAll(param));
     }
 }

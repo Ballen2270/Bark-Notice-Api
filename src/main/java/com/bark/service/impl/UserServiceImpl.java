@@ -6,7 +6,6 @@ import com.bark.core.ErrorCode;
 import com.bark.domain.User;
 import com.bark.dto.CheckInitRes;
 import com.bark.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,13 +20,16 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    public UserServiceImpl(UserMapper userMapper, StringRedisTemplate redisTemplate) {
+        this.userMapper = userMapper;
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 验证码缓存前缀
@@ -39,18 +41,29 @@ public class UserServiceImpl implements UserService {
      */
     private static final long CAPTCHA_EXPIRATION = 10;
 
+    /**
+     * IP封锁相关常量
+     */
+    private static final String LOGIN_FAIL_PREFIX = "login:fail:";
+    private static final String LOGIN_BLOCK_PREFIX = "login:block:";
+    private static final int MAX_FAIL_COUNT = 3;
+    private static final long BLOCK_DURATION = 30; // 天
+    private static final long FAIL_DURATION = 24; // 小时
+
     @Override
     public User login(String username, String password, String captcha, String captchaKey, String ip) {
+        // 检查IP是否被封锁
+        checkIpBlocked(ip);
+
         // 验证验证码
         String key = CAPTCHA_PREFIX + captchaKey;
         String cachedCaptcha = redisTemplate.opsForValue().get(key);
-        System.out.println("验证验证码: key=" + key + ", 缓存的验证码=" + cachedCaptcha + ", 用户输入=" + captcha);
 
         if (cachedCaptcha == null) {
-            throw new BasicError(ErrorCode.SYSTEM_ERROR, "验证码已过期，请重新获取");
+            handleLoginFailure(ip, "验证码已过期，请重新获取");
         }
         if (!cachedCaptcha.equalsIgnoreCase(captcha)) {
-            throw new BasicError(ErrorCode.SYSTEM_ERROR, "验证码错误，请重新输入");
+            handleLoginFailure(ip, "验证码错误，请重新输入");
         }
 
         // 删除已使用的验证码
@@ -59,18 +72,21 @@ public class UserServiceImpl implements UserService {
         // 查询用户
         User user = userMapper.findByUsername(username);
         if (user == null) {
-            throw new BasicError(ErrorCode.SYSTEM_ERROR, "用户名或密码错误");
+            handleLoginFailure(ip, "用户名或密码错误");
         }
 
         // 验证密码
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BasicError(ErrorCode.SYSTEM_ERROR, "用户名或密码错误");
+            handleLoginFailure(ip, "用户名或密码错误");
         }
 
         // 验证账号状态
         if (!"ACTIVE".equals(user.getStatus())) {
-            throw new BasicError(ErrorCode.SYSTEM_ERROR, "账号已被禁用，请联系管理员");
+            handleLoginFailure(ip, "账号已被禁用，请联系管理员");
         }
+
+        // 登录成功：清除失败计数
+        clearFailCount(ip);
 
         // 更新登录信息
         userMapper.updateLoginInfo(user.getId(), ip);
@@ -79,6 +95,61 @@ public class UserServiceImpl implements UserService {
         user.setPassword(null);
 
         return user;
+    }
+
+    /**
+     * 检查IP是否被封锁
+     *
+     * @param ip IP地址
+     */
+    private void checkIpBlocked(String ip) {
+        String blockKey = LOGIN_BLOCK_PREFIX + ip;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(blockKey))) {
+            throw new BasicError(ErrorCode.IP_BLOCKED, "IP已被封锁，请30天后再试");
+        }
+    }
+
+    /**
+     * 处理登录失败
+     *
+     * @param ip IP地址
+     * @param errorMessage 错误信息
+     */
+    private void handleLoginFailure(String ip, String errorMessage) {
+        String failKey = LOGIN_FAIL_PREFIX + ip;
+
+        // 使用原子操作增加失败计数
+        Long failCount = redisTemplate.opsForValue().increment(failKey);
+
+        // 设置失败计数的过期时间（仅在第一次设置时）
+        if (failCount != null && failCount == 1) {
+            redisTemplate.expire(failKey, FAIL_DURATION, TimeUnit.HOURS);
+        }
+
+        // 检查是否达到封锁阈值
+        if (failCount != null && failCount >= MAX_FAIL_COUNT) {
+            // 封锁IP
+            String blockKey = LOGIN_BLOCK_PREFIX + ip;
+            redisTemplate.opsForValue().set(blockKey, "blocked", BLOCK_DURATION, TimeUnit.DAYS);
+
+            // 删除失败计数key（因为已经被封锁）
+            redisTemplate.delete(failKey);
+
+            throw new BasicError(ErrorCode.IP_BLOCKED, "IP已被封锁，请30天后再试");
+        }
+
+        // 抛出原始错误信息
+        throw new BasicError(ErrorCode.SYSTEM_ERROR, errorMessage);
+    }
+
+    /**
+     * 清除失败计数（登录成功时调用）
+     *
+     * @param ip IP地址
+     */
+    private void clearFailCount(String ip) {
+        String failKey = LOGIN_FAIL_PREFIX + ip;
+        redisTemplate.delete(failKey);
     }
 
     @Override

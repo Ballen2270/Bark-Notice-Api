@@ -34,7 +34,12 @@ service.interceptors.response.use(
                 localStorage.removeItem('userInfo')
                 window.location.href = '/login'
             }
-            return Promise.reject(new Error(res.msg || 'Error'))
+            // 返回包含错误码和错误消息的完整错误对象
+            return Promise.reject({
+                code: res.code,
+                msg: res.msg || 'Error',
+                message: res.msg || 'Error' // 保持向后兼容
+            })
         } else {
             return res
         }

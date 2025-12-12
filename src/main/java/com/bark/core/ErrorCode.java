@@ -6,4 +6,7 @@ package com.bark.core;
 public class ErrorCode {
     // 通用错误码
     public static final String SYSTEM_ERROR = "999999";
+
+    // IP封锁错误码
+    public static final String IP_BLOCKED = "100001";
 } 

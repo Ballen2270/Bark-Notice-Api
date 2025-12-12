@@ -1,5 +1,13 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-apple-gray relative overflow-hidden">
+    <!-- Alert Component -->
+    <Alert
+      v-model="alert.show"
+      :type="alert.type"
+      :title="alert.title"
+      :message="alert.message"
+    />
+
     <!-- Background blobs -->
     <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px]"></div>
     <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-[100px]"></div>
@@ -75,10 +83,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { getCaptcha, checkInit } from '../api/auth'
+import Alert from '../components/Alert.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -92,6 +101,20 @@ const form = ref({
 
 const loading = ref(false)
 const captchaImage = ref('')
+
+const alert = reactive({
+  show: false,
+  type: 'error',
+  title: '',
+  message: ''
+})
+
+const showAlert = (type, title, message = '') => {
+  alert.type = type
+  alert.title = title
+  alert.message = message
+  alert.show = true
+}
 
 const refreshCaptcha = async () => {
   try {
@@ -111,8 +134,20 @@ const handleLogin = async () => {
     await authStore.login(form.value)
     router.push('/')
   } catch (error) {
-    // Error handled in store/request
-    refreshCaptcha()
+    console.error('Login failed:', error)
+    // 显示错误提示
+    const errorMessage = error?.message || error?.msg || '登录失败，请检查用户名和密码'
+    const errorCode = error?.code
+
+    // 直接判断错误码是否为IP被封锁
+    if (errorCode === '100001') {
+      showAlert('error', 'IP已被封锁', '该IP因多次登录失败已被封锁30天，请稍后再试')
+      // IP被封锁时不刷新验证码，因为短时间内无法登录
+    } else {
+      showAlert('error', '登录失败', errorMessage)
+      // 刷新验证码
+      refreshCaptcha()
+    }
   } finally {
     loading.value = false
   }

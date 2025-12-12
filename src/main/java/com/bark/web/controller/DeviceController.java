@@ -8,6 +8,7 @@ import com.bark.mapper.DeviceConfMapper;
 import com.bark.utils.RandomStringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequestMapping("/device")
 @RestController
+@Validated
 public class DeviceController {
     public final static String ACTIVE = "ACTIVE";
     public final static String STOP = "STOP";
@@ -34,7 +36,7 @@ public class DeviceController {
     }
 
     @GetMapping("query")
-    private BasicResponse query(@RequestParam String deviceToken){
+    public BasicResponse query(@RequestParam String deviceToken){
         DeviceConf conf = deviceConfMapper.selectByPrimaryKey(deviceToken);
         if (conf == null){
             return BasicResponse.errorToClient("设备不存在", null);
@@ -43,14 +45,14 @@ public class DeviceController {
     }
 
     @GetMapping("queryAll")
-    private BasicResponse queryAll(){
+    public BasicResponse queryAll(){
         List<DeviceConf> confs = deviceConfMapper.selectAll();
         List<DeviceConfDTO> dtos = confs.stream().map(DeviceConf::toDTO).collect(Collectors.toList());
         return BasicResponse.successToClient("查询成功", dtos);
     }
 
     @PostMapping("gen")
-    private BasicResponse genDevice(@Valid @RequestBody DeviceConfParam param){
+    public BasicResponse genDevice(@Valid @RequestBody DeviceConfParam param){
         DeviceConf deviceConf = deviceConfMapper.selectByPrimaryKey(param.getDeviceToken());
         if (deviceConf != null){
             deviceConf.setName(param.getName());
@@ -79,7 +81,7 @@ public class DeviceController {
     }
 
     @GetMapping("active")
-    private BasicResponse active(@RequestParam String deviceToken){
+    public BasicResponse active(@RequestParam String deviceToken){
         DeviceConf deviceConf = deviceConfMapper.selectByPrimaryKey(deviceToken);
         if (deviceConf == null){
             return BasicResponse.errorToClient("设备不存在", null);
@@ -90,7 +92,7 @@ public class DeviceController {
     }
 
     @GetMapping("stop")
-    private BasicResponse stop(@RequestParam String deviceToken){
+    public BasicResponse stop(@RequestParam String deviceToken){
         DeviceConf deviceConf = deviceConfMapper.selectByPrimaryKey(deviceToken);
         if (deviceConf == null){
             return BasicResponse.errorToClient("设备不存在", null);

@@ -38,3 +38,4 @@ target/
 .serena
 node_modules
 .vscode
+.env

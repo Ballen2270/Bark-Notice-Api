@@ -5,11 +5,10 @@ import com.bark.dto.ApiParam;
 import com.bark.dto.jellyfin.JellyFinWebhookParam;
 import com.bark.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.text.MessageFormat;
 
 
@@ -19,6 +18,7 @@ import java.text.MessageFormat;
 @Slf4j
 @RequestMapping("/jellyfin")
 @RestController
+@Validated
 public class JellyfinController {
     private final static String ITEM_ADDED = "ItemAdded";
     private final static String PLAYBACK_START = "PlaybackStart";
@@ -45,7 +45,7 @@ public class JellyfinController {
 
 
     @PostMapping("notice")
-    private BasicResponse notice(@RequestBody JellyFinWebhookParam param){
+    public BasicResponse notice(@Valid @RequestBody JellyFinWebhookParam param){
         ApiParam apiParam = new ApiParam();
         apiParam.setGroup(GROUP);
         switch (param.getItemType()){
