@@ -1,303 +1,320 @@
-# Bark-Notice-Api
+# Bark Notice App
 
-非常感谢Bark作者开源了Bark和Bark-Server，让我们能够免费享受到Apple设备的实时推送服务。相比于钉钉、Server酱等webhook工具，Bark的自由便捷让我爱不释手。
+<p align="center">
+  <strong>一个基于 Spring Boot 的 Bark-Server 私有推送网关</strong>
+</p>
 
-为了实现多设备推送和保障隐私，我基于SpringBoot对Bark-Server进行了一层封装，开发了Bark-Notice-Api。个人编码能力有限，仅满足个人需求。
+<p align="center">
+  <a href="./README.en.md">English</a> | 中文
+</p>
 
-Bark-Notice-Api的工作原理是：其他服务只需发送简单明文请求，API会对请求内容进行加密处理，然后将加密后的数据转发给Bark-Server。同时，API会对请求进行简单日志记录。
+<p align="center">
+  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-2.2.3-6DB33F">
+  <img alt="Java" src="https://img.shields.io/badge/Java-8-007396">
+  <img alt="Vue" src="https://img.shields.io/badge/Vue-3-42B883">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-ready-2496ED">
+  <img alt="License" src="https://img.shields.io/badge/License-see%20LICENSE-lightgrey">
+</p>
 
-# Bark-server
+## 目录
 
-Bark-Server传送门
+- [项目简介](#项目简介)
+- [核心能力](#核心能力)
+- [工作原理](#工作原理)
+- [快速开始](#快速开始)
+- [设备配置](#设备配置)
+- [API 参考](#api-参考)
+- [Jellyfin 接入](#jellyfin-接入)
+- [状态接口](#状态接口)
+- [本地开发](#本地开发)
+- [截图](#截图)
+- [致谢](#致谢)
 
-https://github.com/Finb/bark-server
+## 项目简介
 
-# 开始
+非常感谢 [Bark](https://github.com/Finb/Bark) 和 [Bark-Server](https://github.com/Finb/bark-server) 的开源工作，让 Apple 设备可以方便地接收实时推送。相比钉钉、Server 酱等 webhook 工具，Bark 的自由度和私有化能力更适合个人自动化场景。
 
-## Mysql
+`bark-notice-app` 在 Bark-Server 外层增加了一层 API 网关：外部系统只需要发送明文请求，本服务会把通知内容加密后转发给 Bark-Server，同时记录通知日志，并提供多设备配置、Jellyfin 通知和前端管理页面。
 
-Bark Notice API需要mysql支持，数据库执行notice-Api.sql文件，创建服务所需要的两张表，作日志记录
+## 核心能力
 
-## Bark-Server
+| 能力 | 说明 |
+| --- | --- |
+| 明文 webhook 入站 | 外部系统直接发送明文请求，服务端负责加密转发到 Bark-Server |
+| 多设备管理 | 支持设备配置、启用和停用 |
+| 通知日志 | 记录通知请求和推送结果，便于排查问题 |
+| 前端管理页 | 提供 Vue 管理页面 |
+| Jellyfin 接入 | 内置 Jellyfin webhook 模板和专用接口 |
+| 状态接口 | 提供 homepage custom API 兼容的状态接口 |
+| Docker 部署 | 前端和后端可在同一个 Docker 容器中运行 |
 
-需要部署原生Bark-Server,详情请见
+## 工作原理
 
+```mermaid
+flowchart LR
+    A[外部服务 / Webhook<br>明文通知请求] --> B[Bark Notice App<br>加密、转发、记录日志]
+    B --> C[Bark-Server<br>私有 Bark 服务]
+    C --> D[Bark App<br>Apple 设备推送]
+    B --> E[(MySQL<br>设备配置和通知日志)]
+    B --> F[(Redis<br>认证和辅助状态)]
 ```
-https://bark.day.app/#/deploy
+
+外部服务调用 `bark-notice-app` 的 `/notice` 接口即可发送通知。服务会读取已配置的设备列表，将消息按设备加密，再调用 Bark-Server 完成推送。
+
+## 快速开始
+
+### 依赖服务
+
+| 项目 | 说明 |
+| --- | --- |
+| Bark App | 从 App Store 安装 Bark App |
+| Bark-Server | 需要先部署原生 Bark-Server |
+| MySQL | 创建 `notice-api` 数据库并初始化表结构 |
+| Redis | 用于认证、验证码和辅助状态 |
+
+Bark-Server 部署文档：<https://bark.day.app/#/deploy>
+
+### 初始化数据库
+
+首次部署前创建数据库，并导入 `notice-api.sql`。该脚本会重建表结构，只建议在首次初始化时执行。
+
+```sql
+CREATE DATABASE IF NOT EXISTS `notice-api`
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_general_ci;
 ```
 
-## Bark App
-
-App Store 中下载Bark App
-
-## Bark Notice API+APP
-
-### docker
-
+```bash
+mysql -u <mysql-user> -p notice-api < notice-api.sql
 ```
-docker run -d --name bark-notice-app \
-  --restart always \
-  --network host \
-  -e SPRING_PROFILES_ACTIVE="pro" \
-  -e MYSQL_HOST_NAME="127.0.0.1" \
-  -e MYSQL_PORT=3306 \
-  -e MYSQL_USERNAME=root \
-  -e MYSQL_PASSWORD=root \
-  -e BARK_SERVER_URL="http://127.0.0.1:9988" \
-  -e BARK_SERVER_TOKEN=xyC9j6e2mbGijEVG7Xu934zU1MaapJvq \
-  -e REDIS_PORT=6379 \
-  -e REDIS_URL=127.0.0.1 \
-  -e REDIS_PASSWORD=redis \
-  -e TZ=Asia/Shanghai \
-  bark-notice-app:latest
-```
-### docker compose
-```
+
+### Docker Compose 推荐
+
+`BARK_SERVER_URL` 必须是容器内部可以访问到的 Bark-Server 地址。如果 Bark-Server 在宿主机上，通常可以使用 `host.docker.internal`；如果在同一个 compose 网络中，使用服务名。
+
+```yaml
 services:
   bark-notice-app:
     image: ballen2270/bark-notice-app:latest
     container_name: bark-notice-app
     restart: always
     ports:
-      - "3000:3000" # 前端
-      - "8080:8080" # api服务
+      - "3000:3000" # 前端管理页
+      - "8080:8080" # 后端接口
     environment:
-      - SPRING_PROFILES_ACTIVE=pro
-      - MYSQL_HOST_NAME=127.0.0.1
-      - MYSQL_PORT=3306
-      - MYSQL_USERNAME=root
-      - MYSQL_PASSWORD=root
-      - BARK_SERVER_URL=http://127.0.0.1:9988
-      - BARK_SERVER_TOKEN=xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
-      - REDIS_PORT=6379
-      - REDIS_URL=127.0.0.1
-      - REDIS_PASSWORD=redis
-      - TZ="Asia/Shanghai"
+      SPRING_PROFILES_ACTIVE: pro
+      MYSQL_HOST_NAME: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root
+      BARK_SERVER_URL: http://host.docker.internal:9988
+      BARK_SERVER_TOKEN: replace-with-your-api-token
+      REDIS_URL: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis
+      TZ: Asia/Shanghai
 ```
 
-## 配置设备
+部署后访问：
 
-1. 打开Bark App点击右上角加号
+- 前端管理页：`http://<host>:3000`
+- 后端 API：`http://<host>:8080`
+- 前端代理 API：`http://<host>:3000/api`
 
-2. 填入你已经部署好的Bark-Notice-Api URL -> 右上角勾选
+### Docker Run
 
-3. 成功会显示你的私人服务器URL以及Devicekey（会在生成设备配置中用到）
-
-4. Bark App ->设置 复制DeviceToekn（切记不要泄露）
-
-5. 生成设备配置 post请求
-
-	```shell
-	curl --location 'https://bark-notice-api.com/device/gen' \ #需要替换成私人bark-notice-api URL地址
-	--header 'Content-Type: application/json' \
-	--data '{
-	  "deviceToken": "步骤4中复制的deviceToken",
-	  "name": "设备名称",
-	  "deviceKey": "URL末尾的devideKey",
-	  "algorithm": "无需填写 默认为AES",
-	  "model": "无需填写 默认为CBC 目前仅支持CBC",
-	  "padding": "无需填写 默认为PKCS7Padding 目前仅支持",
-	  "encodeKey": "可自定义 也可由Bark-Notice-Api自动生成",
-	  "iv": "可自定义 也可由Bark-Notice-Api自动生成"
-	}
-	'
-	```
-
-	
-
-6. Bark App首页下拉找到加密设置
-
-	```
-	算法：AES256
-	模式：CBC
-	Padding：pkcs7
-	Key：从步骤五中返回中复制encodeKey到这里
-	iv：从步骤五中返回中复制iv到这里
-	```
-
-7. 点击右上角完成 会发送两条测试请求到服务器，请保持服务器可用
-
-8. 如需多设备推送，可在新设备上重复上述过程，即可实现多设备 消息推送
-
-9. 测试消息发送
-
-	```shell
-	curl --location 'https://notice-api.com/notice' \ #需要替换成私人bark-notice-api URL地址
-	--header 'Content-Type: application/json' \
-	--data '{
-	    "body": "msg body",
-	    "group": "test",
-	    "title": "test title"
-	}'
-	```
-
-	
-
-# 图解
-
-## 生成加密设备配置
-
-<img src="/image/genDeviceConf.png" alt="addPersonalService.png" style="zoom: 33%;" />
-
-## 添加私有服务器
-
-<img src="/image/addPersonalService.png" alt="添加私有服务器" style="zoom: 25%;" />
-
-## 推送消息
-
-<img src="/image/pushMessage.png" alt="推送消息" style="zoom: 67%;" />
-
-# API
-
-## 注册
-
-请求方法：GET
-
-请求地址：/register
-
-请求格式：
-
-```
-?deviceToken={0}&key={1}
+```bash
+docker run -d --name bark-notice-app \
+  --restart always \
+  -p 3000:3000 \
+  -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=pro \
+  -e MYSQL_HOST_NAME=127.0.0.1 \
+  -e MYSQL_PORT=3306 \
+  -e MYSQL_USERNAME=root \
+  -e MYSQL_PASSWORD=root \
+  -e BARK_SERVER_URL=http://host.docker.internal:9988 \
+  -e BARK_SERVER_TOKEN=replace-with-your-api-token \
+  -e REDIS_URL=127.0.0.1 \
+  -e REDIS_PORT=6379 \
+  -e REDIS_PASSWORD=redis \
+  -e TZ=Asia/Shanghai \
+  ballen2270/bark-notice-app:latest
 ```
 
+### 环境变量
 
+| 变量 | 说明 |
+| --- | --- |
+| `SPRING_PROFILES_ACTIVE` | 生产环境使用 `pro` |
+| `MYSQL_HOST_NAME` | MySQL 主机名或服务名 |
+| `MYSQL_PORT` | MySQL 端口 |
+| `MYSQL_USERNAME` | MySQL 用户名 |
+| `MYSQL_PASSWORD` | MySQL 密码 |
+| `BARK_SERVER_URL` | Bark-Server 地址 |
+| `BARK_SERVER_TOKEN` | 状态接口鉴权 token |
+| `REDIS_URL` | Redis 主机名或服务名 |
+| `REDIS_PORT` | Redis 端口 |
+| `REDIS_PASSWORD` | Redis 密码 |
+| `TZ` | 容器时区 |
 
-## 消息推送
+## 设备配置
 
-请求方法：GET
+### 1. 添加私有服务器
 
-请求地址：/notice
+1. 打开 Bark App，点击右上角加号。
+2. 填入已经部署好的 `bark-notice-app` URL，例如 `https://notice.example.com`。
+3. 保存后，Bark App 会显示私人服务器 URL 和 `DeviceKey`。
+4. 进入 Bark App 设置页，复制 `DeviceToken`。请妥善保存，不要泄露。
 
-请求格式1：
+### 2. 生成加密配置
 
+推荐通过前端管理页添加设备。如果直接调用接口，管理类接口可能需要登录后的 JWT。
+
+```bash
+export BASE_URL="https://notice.example.com"
+export JWT_TOKEN="<jwt-token-if-required>"
+
+curl --request POST "$BASE_URL/device/gen" \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $JWT_TOKEN" \
+  --data '{
+    "deviceToken": "DeviceToken copied from Bark App settings",
+    "name": "iPhone",
+    "deviceKey": "DeviceKey shown in Bark App private server URL",
+    "algorithm": "AES",
+    "model": "CBC",
+    "padding": "PKCS7Padding",
+    "encodeKey": "",
+    "iv": ""
+  }'
 ```
-?title={0}&body={1}&group={2}
+
+`encodeKey` 和 `iv` 为空时由 `bark-notice-app` 自动生成。
+
+### 3. 配置 Bark App 加密
+
+在 Bark App 首页下拉进入加密设置：
+
+| 设置项 | 值 |
+| --- | --- |
+| 算法 | `AES256` |
+| 模式 | `CBC` |
+| Padding | `pkcs7` |
+| Key | 使用接口返回的 `encodeKey` |
+| iv | 使用接口返回的 `iv` |
+
+点击右上角完成。Bark App 会发送测试请求，请保持服务可用。
+
+### 4. 发送测试消息
+
+```bash
+curl --request POST "$BASE_URL/notice" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "title": "test title",
+    "body": "msg body",
+    "group": "test",
+    "url": "https://example.com"
+  }'
 ```
 
-请求格式2：
+## API 参考
 
-```
-/{title}/{body}?group={0}
-```
-
-
-
-请求方法：POST
-
-请求地址：/notice
-
-请求格式：
+### 通用返回格式
 
 ```json
 {
-    "body": "body", #消息内容
-    "group": "group", #消息分组
-    "title": "title", #通知标题
-    "url": "https://xxx.com" #点击推送打开URL
+  "code": "000000",
+  "msg": "发送成功",
+  "data": {
+    "sendNum": 1,
+    "successNum": 1
+  }
 }
 ```
 
-返回格式：
+### 通知接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/ping` | 透传 Bark-Server ping |
+| `GET` | `/notice?title={title}&body={body}&group={group}` | 发送通知 |
+| `GET` | `/notice/{title}/{body}?group={group}` | 路径参数方式发送通知 |
+| `POST` | `/notice` | JSON 方式发送通知 |
+
+`POST /notice` 请求体：
 
 ```json
 {
-    "code": "000000",
-    "msg": "发送成功",
-    "data": {
-        "sendNum": 1, #发送数量
-        "successNum": 1 #发送成功数量
-    }
+  "title": "title",
+  "body": "body",
+  "group": "group",
+  "url": "https://example.com"
 }
 ```
-# Jellyfin
 
-提供两种接入思路
+### Bark 注册接口
 
-一种是通用格式，另一种是配置更简单的Jellyfin格式
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/register?devicetoken={deviceToken}&key={key}` | 转发 Bark App 注册请求并保存 DeviceKey |
 
-## webhook
+### 设备接口
 
-这个插件还挺坑的 获取不到UserName的 NotificationName可以获取到当前播放的用户 ，播放的IP也获取不到
+这些接口用于管理设备配置。若开启 JWT 保护，请带上 `Authorization: Bearer <token>`。
 
-### github
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/device/query?deviceToken={deviceToken}` | 查询单个设备 |
+| `GET` | `/device/queryAll` | 查询所有设备 |
+| `POST` | `/device/gen` | 生成或更新设备加密配置 |
+| `GET` | `/device/active?deviceToken={deviceToken}` | 启用设备 |
+| `GET` | `/device/stop?deviceToken={deviceToken}` | 停用设备 |
 
-https://github.com/jellyfin/jellyfin-plugin-webhook
+### 认证接口
 
-### 通用配置
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/auth/checkInit` | 检查系统是否已初始化 |
+| `POST` | `/auth/initRegister` | 初始化管理员账号 |
+| `POST` | `/auth/login` | 登录并返回 JWT |
+| `GET` | `/auth/info` | 获取当前用户信息 |
+| `POST` | `/auth/changePassword` | 修改密码 |
 
-插件->目录 安装webhook插件
+## Jellyfin 接入
 
-Add Generic Destination
+### 通用 webhook
 
-name随意填写
+1. 在 Jellyfin 插件目录中安装 Webhook 插件。
+2. 添加 Generic Destination。
+3. URL 填写 `http://<host>:8080/notice`。
+4. 添加请求头：`Content-Type: application/json`。
+5. Notification Type 可选择 `Playback Start`、`Playback Stop` 等。
 
-Notification Type Playback Start 、Playback Stop 我只选择了开始播放和暂停播放
+模板示例：
 
-User filter不用勾选 勾选的用户不会发送通知
-
-Item Type全部勾选 
-
-默认是发送text/plain请求 如果要发送json格式的
-
-Add Request Header
-
-```
-Key：Content-Type
-Value：application/json
-```
-
-
-
-## Notice-Api
-
-此种接入方式更自由，可依据jellyfin webhook插件语法自行编写模板
-
-webhook url
-
-```
-http://127.0.0.1:8080/notice
-```
-
-Template模板
-
-```
+```json
 {
-    "group": "Jellyfin",
-    {{~#if_equals NotificationType 'PlaybackStart'~}}
-        "title": "🎬 Jellyfin 播放 🎥",
-    {{~else~}}
-    {{~#if_equals NotificationType  'PlaybackStop'~}}
-        "title": "🎬 Jellyfin 暂停 🎥",
-    {{~else~}}
-        "title": "🎬 Jellyfin 🎥",
-    {{~/if_equals~}}
-    {{~/if_equals~}}
-    {{~#if_equals ItemType 'Episode'~}}
-    "body": "用户：{{NotificationUsername}}\n电视剧：{{{SeriesName}}}.S{{SeasonNumber00}}E{{EpisodeNumber00}}.{{{Name}}}\n播放终端：{{DeviceName}}"
-    {{~else~}}
-    {{~#if_equals ItemType 'Movie'~}}
-        "body": "用户：{{NotificationUsername}}\n电影：{{{Name}}}({{Year}})\n设备：{{DeviceName}}"
-    {{~/if_equals~}}
-    {{~/if_equals~}}
+  "group": "Jellyfin",
+  "title": "Jellyfin {{NotificationType}}",
+  "body": "用户：{{NotificationUsername}}\n媒体：{{{Name}}}\n设备：{{DeviceName}}"
 }
 ```
 
+### 专用 Jellyfin 接口
 
+该方式配置更简单，当前支持媒体增加、开始播放、暂停播放等通知类型。
 
-## Notice-Api-For-Jellyfin
+Webhook URL:
 
-此种方式配置比较简单通俗，目前仅实现增加、播放、暂停三个操作
-
-Webhook url
-
-```
-http://127.0.0.1:8080/jellyfin/notice
+```text
+http://<host>:8080/jellyfin/notice
 ```
 
-Template模板
+Template:
 
-```
+```json
 {
   "notificationType": "{{{NotificationType}}}",
   "itemType": "{{{ItemType}}}",
@@ -309,52 +326,90 @@ Template模板
   "deviceName": "{{{DeviceName}}}",
   "notificationUsername": "{{{NotificationUsername}}}"
 }
-
 ```
 
-# Endpoint支持
+## 状态接口
 
-请求url
+`/status/endpoint` 可用于 homepage 的 custom API。请求时需要在 header 中传入 `API-TOKEN`，其值与 `BARK_SERVER_TOKEN` 一致。
 
-```
-http://127.0.0.1:8080/Status/endpoint
-```
-
-需在docker启动配置中添加BARK_SERVER_TOKEN参数
-
-```shell
-# 示例
--e BARK_SERVER_TOKEN= xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
+```bash
+curl --request GET "http://<host>:8080/status/endpoint" \
+  --header "API-TOKEN: replace-with-your-api-token"
 ```
 
-## homepage
+返回示例：
 
-custom api示例配置如下
+```json
+{
+  "status": "在线",
+  "activeDeviceNum": 1,
+  "allDeviceNum": 2
+}
+```
+
+homepage 配置示例：
 
 ```yaml
-    - WebHook:
-        - Bark Notice App:
-        		#自行上传图片
-            icon: barknoticeapp.png
-            #点击serive跳转的url 一般是公网url
-            href: https://barknoticeapp.com
-            widget:
-                type: customapi
-                # 选择内网或者homepage所在服务器能访问的bark notice app url
-                url: http://127.0.0.1:9999/status/endpoint
-                refreshInterval: 10000
-                method: GET
-                headers: 
-                		# BARK_SERVER_TOKEN 中配置的TOKEN
-                    API-TOKEN: xyC9j6e2mbGijEVG7Xu934zU1MaapJvq
-                mappings:
-                    - field: status
-                      label: 服务状态
-                    - field: activeDeviceNum
-                      label: 活跃设备数
-                      format: number
-                    - field: allDeviceNum
-                      label: 总设备数
-                      format: number
+- WebHook:
+    - Bark Notice App:
+        icon: barknoticeapp.png
+        href: https://notice.example.com
+        widget:
+          type: customapi
+          url: http://127.0.0.1:8080/status/endpoint
+          refreshInterval: 10000
+          method: GET
+          headers:
+            API-TOKEN: replace-with-your-api-token
+          mappings:
+            - field: status
+              label: 服务状态
+            - field: activeDeviceNum
+              label: 活跃设备数
+              format: number
+            - field: allDeviceNum
+              label: 总设备数
+              format: number
 ```
 
+## 本地开发
+
+### 后端
+
+```bash
+mvn clean package -DskipTests
+java -Dspring.profiles.active=dev -jar target/notice-api.jar
+```
+
+默认后端端口：`8080`
+
+### 前端
+
+```bash
+npm --prefix frontend install
+npm --prefix frontend run dev
+```
+
+默认前端端口：`3000`
+
+开发环境中，前端 `/api` 会代理到 `http://localhost:8080`。
+
+### Docker 镜像构建
+
+```bash
+docker build -t bark-notice-app:latest .
+```
+
+## 截图
+
+| 生成加密设备配置 | 添加私有服务器 | 推送消息 |
+| --- | --- | --- |
+| <img src="image/genDeviceConf.png" alt="生成加密设备配置" width="260"> | <img src="image/addPersonalService.png" alt="添加私有服务器" width="260"> | <img src="image/pushMessage.png" alt="推送消息" width="260"> |
+
+## 致谢
+
+本项目基于 Bark 生态构建，感谢 Bark 作者和社区的开源贡献。项目主要用于个人私有化推送场景，请按自己的部署环境调整安全策略、数据库账号和访问控制。
+
+- Bark: <https://github.com/Finb/Bark>
+- Bark-Server: <https://github.com/Finb/bark-server>
+- Bark deploy guide: <https://bark.day.app/#/deploy>
