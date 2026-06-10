@@ -39,3 +39,15 @@ target/
 node_modules
 .vscode
 .env
+
+# Trellis workflow config (local only, not for sharing)
+.trellis/
+
+# Claude Code config (local only)
+.claude/
+
+# Codex / Agent config (local only)
+.codex/
+.agents/
+.qoder/
+AGENTS.md
